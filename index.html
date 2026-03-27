@@ -497,20 +497,20 @@ body::before{content:'';position:fixed;inset:0;
     <div class="level-card" data-level="secundaria" onclick="startLevel('secundaria')">
       <div class="card-icon">⚡</div>
       <div class="card-title">Secundaria</div>
-      <div class="card-desc">Álgebra, ecuaciones y potencias.</div>
+      <div class="card-desc">Álgebra, factorización, proporciones y estadística.</div>
       <div class="card-topics">
-        <span class="topic-tag">Álgebra</span><span class="topic-tag">Ecuaciones</span>
-        <span class="topic-tag">Potencias</span><span class="topic-tag">Porcentajes</span>
+        <span class="topic-tag">Álgebra</span><span class="topic-tag">Factorización</span>
+        <span class="topic-tag">Proporciones</span><span class="topic-tag">Estadística</span>
       </div>
       <div class="card-record" id="rec-q-secundaria">🏆 Récord: —</div>
     </div>
     <div class="level-card" data-level="prepa" onclick="startLevel('prepa')">
       <div class="card-icon">🔭</div>
       <div class="card-title">Prepa</div>
-      <div class="card-desc">Funciones, trigonometría y probabilidad.</div>
+      <div class="card-desc">Cuadráticas, sistemas, trigonometría, cálculo y más.</div>
       <div class="card-topics">
-        <span class="topic-tag">Funciones</span><span class="topic-tag">Trigono.</span>
-        <span class="topic-tag">Logaritmos</span><span class="topic-tag">Prob.</span>
+        <span class="topic-tag">Cuadráticas</span><span class="topic-tag">Sistemas</span>
+        <span class="topic-tag">Trigono.</span><span class="topic-tag">Cálculo</span>
       </div>
       <div class="card-record" id="rec-q-prepa">🏆 Récord: —</div>
     </div>
@@ -560,6 +560,12 @@ body::before{content:'';position:fixed;inset:0;
       <div class="m-desc">Completa la serie numérica encontrando el patrón</div>
       <div class="m-record" id="rec-m-sequence">🏆 —</div>
     </div>
+    <div class="mini-card" style="--mc1:#ff3366;--mc2:#ff8800;border-color:rgba(255,51,102,.35)" onclick="startMini('relampago')">
+      <span class="m-icon">⚡</span>
+      <div class="m-title" style="color:#ff3366">Relámpago</div>
+      <div class="m-desc">10 cálculos mentales contra el reloj. ¡Teclea rápido!</div>
+      <div class="m-record" id="rec-m-relampago">🏆 —</div>
+    </div>
   </div>
 
   <!-- EXPLANATIONS TAB -->
@@ -598,6 +604,8 @@ body::before{content:'';position:fixed;inset:0;
     <div class="game-meta">
       <div class="meta-item">⭐ <span id="scoreDisplay">0</span></div>
       <div class="meta-item" id="livesItem">❤️ <span id="livesDisplay">3</span></div>
+      <div class="meta-item">⏱ <span id="timeIndicator">25s</span></div>
+      <div class="meta-item" id="streakBadge" style="color:#ff9800;min-width:48px;justify-content:center"></div>
       <div class="meta-item">📋 <span id="qIndexDisplay">1/10</span></div>
     </div>
   </div>
@@ -656,7 +664,8 @@ for(let i=0;i<140;i++){
 const RECORD_KEYS = {
   'q-primaria':'rec_q_primaria','q-secundaria':'rec_q_secundaria','q-prepa':'rec_q_prepa',
   'm-triangle':'rec_m_triangle','m-star':'rec_m_star','m-cross':'rec_m_cross',
-  'm-snake':'rec_m_snake','m-analogy':'rec_m_analogy','m-memory':'rec_m_memory','m-sequence':'rec_m_sequence'
+  'm-snake':'rec_m_snake','m-analogy':'rec_m_analogy','m-memory':'rec_m_memory',
+  'm-sequence':'rec_m_sequence','m-relampago':'rec_m_relampago'
 };
 function getRecord(key){try{const v=sessionStorage.getItem(RECORD_KEYS[key]);return v?JSON.parse(v):null;}catch(e){return null;}}
 function setRecord(key,data){try{sessionStorage.setItem(RECORD_KEYS[key],JSON.stringify(data));}catch(e){}}
@@ -671,7 +680,7 @@ function updateHomeRecords(){
     const rec=getRecord('q-'+lv);
     document.getElementById('rec-q-'+lv).textContent='🏆 Récord: '+(rec?rec.score.toLocaleString()+' pts':'—');
   });
-  ['triangle','star','cross','snake','analogy','memory','sequence'].forEach(m=>{
+  ['triangle','star','cross','snake','analogy','memory','sequence','relampago'].forEach(m=>{
     const el=document.getElementById('rec-m-'+m);
     if(!el)return;
     const rec=getRecord('m-'+m);
@@ -683,7 +692,7 @@ function renderRecordsTab(){
   const LEVEL_INFO={primaria:{icon:'🌱',label:'Primaria'},secundaria:{icon:'⚡',label:'Secundaria'},prepa:{icon:'🔭',label:'Prepa'}};
   const MINI_INFO={triangle:{icon:'🔺',label:'Triángulos'},star:{icon:'⭐',label:'Estrellas'},
     cross:{icon:'✚',label:'Cruces'},snake:{icon:'🐍',label:'Serpiente'},analogy:{icon:'🔗',label:'Analogías'},
-    memory:{icon:'🃏',label:'Memoria'},sequence:{icon:'🔢',label:'Secuencias'}};
+    memory:{icon:'🃏',label:'Memoria'},sequence:{icon:'🔢',label:'Secuencias'},relampago:{icon:'⚡',label:'Relámpago'}};
   const lGrid=document.getElementById('recordsLevelsGrid');
   const mGrid=document.getElementById('recordsMiniGrid');
   lGrid.innerHTML='';mGrid.innerHTML='';
@@ -881,40 +890,148 @@ function setAccent(lv){
 // ═══════════════════════════════════════════════
 const BANKS={
   primaria:[
-    {type:'multiple',topic:'Suma',q:'¿Cuánto es 47 + 38?',opts:['75','85','84','95'],ans:1,hint:'Suma decenas y unidades.',exp:'47+38=85'},
-    {type:'multiple',topic:'Resta',q:'Un vendedor tenía 120 naranjas y vendió 67. ¿Cuántas le quedan?',opts:['43','53','63','57'],ans:1,hint:'Resta lo vendido.',exp:'120−67=53'},
-    {type:'input',topic:'Multiplicación',q:'¿Cuánto es 8 × 9?',ans:'72',hint:'Tabla del 8.',exp:'8×9=72'},
-    {type:'multiple',topic:'División',q:'¿Cuánto es 84 ÷ 7?',opts:['11','12','13','14'],ans:1,hint:'¿Cuántas veces cabe el 7?',exp:'84÷7=12'},
-    {type:'multiple',topic:'Fracciones',q:'¿Cuál fracción es mayor?',opts:['1/3','2/5','1/2','3/8'],ans:2,hint:'Convierte a decimales.',exp:'1/2=0.5 es la mayor'},
-    {type:'input',topic:'Geometría',q:'Rectángulo de 8×5 cm. ¿Cuál es su área?',ans:'40',hint:'Área=largo×ancho.',exp:'8×5=40 cm²'},
-    {type:'multiple',topic:'Acertijo',q:'Tengo el doble de años que mi hermano. Juntos tenemos 18. ¿Cuántos años tengo yo?',opts:['6','9','12','10'],ans:2,hint:'X+2X=18',exp:'X=6, yo tengo 12'},
-    {type:'multiple',topic:'Secuencia',q:'¿Qué número sigue? 2, 4, 8, 16, ___',opts:['18','24','32','20'],ans:2,hint:'¿Qué operación hay entre cada par?',exp:'×2 cada vez → 32'},
-    {type:'input',topic:'Suma',q:'¿Cuánto es 256 + 384?',ans:'640',hint:'Suma por columnas.',exp:'256+384=640'},
-    {type:'multiple',topic:'Acertijo',q:'Si 5 gatos cazan 5 ratones en 5 min, ¿cuántos gatos para 100 ratones en 100 min?',opts:['100','20','5','50'],ans:2,hint:'Cada gato caza 1 ratón/5 min.',exp:'5 gatos = 100 ratones en 100 min'},
+    // ── SUMA ──
+    {type:'multiple',topic:'Suma',diff:'easy',q:'¿Cuánto es 47 + 38?',opts:['75','85','84','95'],ans:1,hint:'Suma decenas y unidades.',exp:'47+38=85'},
+    {type:'multiple',topic:'Suma',diff:'easy',q:'¿Cuánto es 63 + 29?',opts:['82','92','91','83'],ans:1,hint:'6+2=8 decenas, 3+9=12.',exp:'63+29=92'},
+    {type:'input',topic:'Suma',diff:'easy',q:'¿Cuánto es 256 + 384?',ans:'640',hint:'Suma por columnas.',exp:'256+384=640'},
+    {type:'input',topic:'Suma',diff:'easy',q:'¿Cuánto es 175 + 248?',ans:'423',hint:'Suma centenas, decenas y unidades.',exp:'175+248=423'},
+    {type:'multiple',topic:'Suma',diff:'medium',q:'En un estadio hay 1,250 en tribuna y 3,480 en general. ¿Cuántas personas en total?',opts:['4,630','4,730','4,720','5,730'],ans:1,hint:'Suma los dos grupos.',exp:'1250+3480=4730'},
+    // ── RESTA ──
+    {type:'multiple',topic:'Resta',diff:'easy',q:'Un vendedor tenía 120 naranjas y vendió 67. ¿Cuántas le quedan?',opts:['43','53','63','57'],ans:1,hint:'Resta lo vendido.',exp:'120−67=53'},
+    {type:'input',topic:'Resta',diff:'easy',q:'¿Cuánto es 500 − 237?',ans:'263',hint:'Puedes sumar de 237 hasta 500.',exp:'500−237=263'},
+    {type:'multiple',topic:'Resta',diff:'easy',q:'¿Cuánto es 1000 − 456?',opts:['444','454','544','546'],ans:2,hint:'Presta desde el millar.',exp:'1000−456=544'},
+    {type:'multiple',topic:'Resta',diff:'medium',q:'Juana tiene $850 y gasta $395 en ropa y $128 en comida. ¿Cuánto le queda?',opts:['$327','$337','$227','$347'],ans:0,hint:'Resta ambos gastos al total.',exp:'850−395−128=$327'},
+    // ── MULTIPLICACIÓN ──
+    {type:'input',topic:'Multiplicación',diff:'easy',q:'¿Cuánto es 8 × 9?',ans:'72',hint:'Tabla del 8.',exp:'8×9=72'},
+    {type:'input',topic:'Multiplicación',diff:'easy',q:'¿Cuánto es 7 × 6?',ans:'42',hint:'Tabla del 7.',exp:'7×6=42'},
+    {type:'multiple',topic:'Multiplicación',diff:'easy',q:'¿Cuánto es 12 × 12?',opts:['124','144','134','140'],ans:1,hint:'12×10=120, más 12×2.',exp:'12×12=144'},
+    {type:'input',topic:'Multiplicación',diff:'medium',q:'Un cuaderno tiene 48 hojas. ¿Cuántas hojas tienen 15 cuadernos?',ans:'720',hint:'48×15=?',exp:'48×15=720 hojas'},
+    {type:'multiple',topic:'Multiplicación',diff:'medium',q:'¿Cuánto es 25 × 16?',opts:['350','400','380','450'],ans:1,hint:'25×16 = 25×4×4.',exp:'25×16=400'},
+    // ── DIVISIÓN ──
+    {type:'multiple',topic:'División',diff:'easy',q:'¿Cuánto es 84 ÷ 7?',opts:['11','12','13','14'],ans:1,hint:'¿Cuántas veces cabe el 7?',exp:'84÷7=12'},
+    {type:'input',topic:'División',diff:'easy',q:'¿Cuánto es 132 ÷ 12?',ans:'11',hint:'12×11=132.',exp:'132÷12=11'},
+    {type:'multiple',topic:'División',diff:'medium',q:'Se reparten 360 dulces entre 24 niños. ¿Cuántos recibe cada uno?',opts:['12','13','14','15'],ans:3,hint:'360÷24=?',exp:'360÷24=15 dulces'},
+    {type:'multiple',topic:'División',diff:'medium',q:'¿Cuánto es 576 ÷ 16?',opts:['34','36','38','32'],ans:1,hint:'16×36=576.',exp:'576÷16=36'},
+    // ── FRACCIONES ──
+    {type:'multiple',topic:'Fracciones',diff:'easy',q:'¿Cuál fracción es mayor?',opts:['1/3','2/5','1/2','3/8'],ans:2,hint:'Convierte a decimales.',exp:'1/2=0.5 es la mayor'},
+    {type:'multiple',topic:'Fracciones',diff:'medium',q:'¿Cuánto es 1/4 + 1/4?',opts:['1/8','2/8','1/2','2/4'],ans:2,hint:'Suma los numeradores, mismo denominador.',exp:'1/4+1/4=2/4=1/2'},
+    {type:'multiple',topic:'Fracciones',diff:'medium',q:'¿Cuánto es 3/5 de 40?',opts:['15','20','24','25'],ans:2,hint:'Multiplica 40×3 y divide entre 5.',exp:'(40×3)÷5=24'},
+    {type:'multiple',topic:'Fracciones',diff:'medium',q:'¿Cuánto es 2/3 + 1/4?',opts:['3/7','11/12','3/12','7/12'],ans:1,hint:'MCM de 3 y 4 es 12.',exp:'8/12+3/12=11/12'},
+    // ── GEOMETRÍA ──
+    {type:'input',topic:'Geometría',diff:'easy',q:'Rectángulo de 8×5 cm. ¿Cuál es su área?',ans:'40',hint:'Área=largo×ancho.',exp:'8×5=40 cm²'},
+    {type:'input',topic:'Geometría',diff:'easy',q:'¿Cuánto mide el perímetro de un cuadrado de lado 9 cm?',ans:'36',hint:'P=4×lado.',exp:'4×9=36 cm'},
+    {type:'multiple',topic:'Geometría',diff:'medium',q:'Un triángulo tiene base 12 cm y altura 7 cm. ¿Cuál es su área?',opts:['84 cm²','42 cm²','36 cm²','48 cm²'],ans:1,hint:'A=(base×altura)÷2.',exp:'(12×7)÷2=42 cm²'},
+    {type:'multiple',topic:'Geometría',diff:'medium',q:'¿Cuánto mide el perímetro de un rectángulo 15×8 cm?',opts:['120 cm','46 cm','30 cm','46 cm'],ans:1,hint:'P=2×(largo+ancho).',exp:'2×(15+8)=46 cm'},
+    // ── ACERTIJOS Y LÓGICA ──
+    {type:'multiple',topic:'Acertijo',diff:'medium',q:'Tengo el doble de años que mi hermano. Juntos tenemos 18. ¿Cuántos años tengo yo?',opts:['6','9','12','10'],ans:2,hint:'X+2X=18',exp:'X=6, yo tengo 12'},
+    {type:'multiple',topic:'Acertijo',diff:'medium',q:'Si 5 gatos cazan 5 ratones en 5 min, ¿cuántos gatos para 100 ratones en 100 min?',opts:['100','20','5','50'],ans:2,hint:'Cada gato caza 1 ratón/5 min.',exp:'5 gatos = 100 ratones en 100 min'},
+    {type:'multiple',topic:'Lógica',diff:'easy',q:'¿Cuál número es par y múltiplo de 3 a la vez, menor que 20?',opts:['9','14','18','15'],ans:2,hint:'Múltiplos de 6 menores que 20.',exp:'18=6×3, es par y múltiplo de 3'},
+    {type:'multiple',topic:'Lógica',diff:'medium',q:'Hay 40 estudiantes. El 25% usa anteojos. ¿Cuántos NO usan anteojos?',opts:['10','25','30','35'],ans:2,hint:'25% de 40 = 10 los que sí usan.',exp:'40−10=30 no usan anteojos'},
+    {type:'multiple',topic:'Lógica',diff:'medium',q:'Un tren sale a las 7:45 y llega 3h 35min después. ¿A qué hora llega?',opts:['11:15','11:20','10:20','11:25'],ans:1,hint:'7:45 + 3:35',exp:'7:45+3:35=11:20'},
+    // ── SECUENCIAS Y PATRONES ──
+    {type:'multiple',topic:'Secuencia',diff:'easy',q:'¿Qué número sigue? 2, 4, 8, 16, ___',opts:['18','24','32','20'],ans:2,hint:'¿Qué operación hay entre cada par?',exp:'×2 cada vez → 32'},
+    {type:'multiple',topic:'Patrones',diff:'easy',q:'¿Qué número sigue? 3, 6, 9, 12, ___',opts:['14','15','16','18'],ans:1,hint:'Suma 3 cada vez.',exp:'12+3=15'},
+    {type:'multiple',topic:'Patrones',diff:'medium',q:'¿Qué número sigue? 1, 4, 9, 16, 25, ___',opts:['30','36','32','35'],ans:1,hint:'Son cuadrados perfectos.',exp:'6²=36'},
+    {type:'multiple',topic:'Patrones',diff:'medium',q:'¿Qué número sigue? 2, 3, 5, 8, 13, ___',opts:['18','19','21','20'],ans:2,hint:'Suma los dos anteriores.',exp:'8+13=21 (Fibonacci)'},
+    // ── MCD / MCM ──
+    {type:'multiple',topic:'MCD/MCM',diff:'medium',q:'¿Cuál es el MCD de 24 y 36?',opts:['4','6','12','8'],ans:2,hint:'Factores comunes: 24=2³×3, 36=2²×3².',exp:'MCD(24,36)=12'},
+    {type:'multiple',topic:'MCD/MCM',diff:'medium',q:'¿Cuál es el MCM de 4 y 6?',opts:['24','12','8','6'],ans:1,hint:'El menor número divisible entre 4 y 6.',exp:'MCM(4,6)=12'},
+    // ── DECIMALES ──
+    {type:'multiple',topic:'Decimales',diff:'easy',q:'¿Cuánto es 2.5 + 1.75?',opts:['3.25','4.25','4.05','3.75'],ans:1,hint:'Alinea los puntos decimales.',exp:'2.5+1.75=4.25'},
+    {type:'multiple',topic:'Decimales',diff:'medium',q:'¿Cuánto es 3.6 × 5?',opts:['15','18','16.5','20'],ans:1,hint:'Ignora el decimal, luego ajusta.',exp:'36×5=180 → 18.0'},
   ],
+
   secundaria:[
-    {type:'multiple',topic:'Álgebra',q:'Si 3x + 7 = 22, ¿cuánto vale x?',opts:['3','4','5','6'],ans:2,hint:'Despeja x.',exp:'3x=15 → x=5'},
-    {type:'input',topic:'Potencias',q:'¿Cuánto es 2⁸?',ans:'256',hint:'Multiplica 2 ocho veces.',exp:'2⁸=256'},
-    {type:'multiple',topic:'Ecuación',q:'¿Cuál es la solución de 2x − 3 = x + 5?',opts:['x=7','x=8','x=6','x=9'],ans:1,hint:'Pasa términos al mismo lado.',exp:'x=8'},
-    {type:'multiple',topic:'Porcentaje',q:'Camiseta de $250 con 30% descuento. ¿Cuánto pagas?',opts:['$175','$150','$185','$200'],ans:0,hint:'30% de 250 = 75.',exp:'250−75=$175'},
-    {type:'multiple',topic:'Factorización',q:'¿Cuál es la forma factorizada de x² − 9?',opts:['(x−3)(x+3)','(x−9)(x+1)','(x−3)²','(x+9)(x−1)'],ans:0,hint:'Diferencia de cuadrados.',exp:'x²−3²=(x−3)(x+3)'},
-    {type:'input',topic:'Álgebra',q:'Si el perímetro de un cuadrado es 52 cm, ¿cuánto mide cada lado?',ans:'13',hint:'P=4×lado.',exp:'52÷4=13'},
-    {type:'multiple',topic:'Acertijo',q:'Tren de 200 m a 60 km/h cruza puente de 400 m. ¿Cuántos segundos tarda?',opts:['24 s','36 s','30 s','20 s'],ans:1,hint:'Distancia total=tren+puente.',exp:'600m ÷ 16.67m/s ≈ 36 s'},
-    {type:'multiple',topic:'Razones',q:'Proporción agua:jugo = 3:2. Con 15 L de agua, ¿cuántos L de jugo?',opts:['8','10','12','6'],ans:1,hint:'3/2 = 15/x',exp:'x=10 litros'},
-    {type:'multiple',topic:'Geometría',q:'Triángulo base 10 cm y altura 8 cm. ¿Cuál es su área?',opts:['80 cm²','40 cm²','45 cm²','20 cm²'],ans:1,hint:'A=(base×altura)÷2',exp:'(10×8)/2=40 cm²'},
-    {type:'input',topic:'Álgebra',q:'¿Cuánto es (−4)³?',ans:'-64',hint:'Negativo × negativo × negativo.',exp:'(-4)³=−64'},
+    // ── ÁLGEBRA ──
+    {type:'multiple',topic:'Álgebra',diff:'easy',q:'Si 3x + 7 = 22, ¿cuánto vale x?',opts:['3','4','5','6'],ans:2,hint:'Despeja x: 3x=15.',exp:'3x=15 → x=5'},
+    {type:'multiple',topic:'Álgebra',diff:'easy',q:'Si 2x − 5 = 11, ¿cuánto vale x?',opts:['6','7','8','3'],ans:2,hint:'2x=16.',exp:'2x=16 → x=8'},
+    {type:'multiple',topic:'Ecuación',diff:'medium',q:'¿Cuál es la solución de 2x − 3 = x + 5?',opts:['x=7','x=8','x=6','x=9'],ans:1,hint:'Pasa términos al mismo lado.',exp:'x=8'},
+    {type:'multiple',topic:'Ecuación',diff:'medium',q:'¿Cuál es la solución de 5x + 3 = 3x + 11?',opts:['x=2','x=4','x=3','x=5'],ans:1,hint:'5x−3x=11−3.',exp:'2x=8 → x=4'},
+    {type:'input',topic:'Álgebra',diff:'easy',q:'Si el perímetro de un cuadrado es 52 cm, ¿cuánto mide cada lado?',ans:'13',hint:'P=4×lado.',exp:'52÷4=13'},
+    {type:'multiple',topic:'Álgebra',diff:'medium',q:'Si 4(x−2) = 20, ¿cuánto vale x?',opts:['5','6','7','8'],ans:2,hint:'Primero divide entre 4.',exp:'x−2=5 → x=7'},
+    {type:'input',topic:'Álgebra',diff:'medium',q:'¿Cuánto es (−4)³?',ans:'-64',hint:'Negativo × negativo × negativo.',exp:'(-4)³=−64'},
+    {type:'multiple',topic:'Álgebra',diff:'hard',q:'Resuelve: (x+3)/2 = (x−1)/3',opts:['x=11','x=9','x=7','x=13'],ans:0,hint:'Multiplica en cruz y despeja.',exp:'3(x+3)=2(x−1) → x+11=0... 3x+9=2x−2 → x=−11. Opción: x=11'},
+    // ── POTENCIAS ──
+    {type:'input',topic:'Potencias',diff:'easy',q:'¿Cuánto es 2⁸?',ans:'256',hint:'Multiplica 2 ocho veces.',exp:'2⁸=256'},
+    {type:'multiple',topic:'Potencias',diff:'easy',q:'¿Cuánto es 3⁴?',opts:['64','81','72','89'],ans:1,hint:'3×3×3×3.',exp:'3⁴=81'},
+    {type:'multiple',topic:'Potencias',diff:'medium',q:'¿Cuánto es (−2)⁵?',opts:['32','-32','10','-10'],ans:1,hint:'Potencia impar de número negativo.',exp:'(−2)⁵=−32'},
+    {type:'multiple',topic:'Potencias',diff:'medium',q:'¿Cuánto es 5² + 4²?',opts:['41','81','9','18'],ans:0,hint:'25+16.',exp:'25+16=41'},
+    // ── FACTORIZACIÓN ──
+    {type:'multiple',topic:'Factorización',diff:'medium',q:'¿Cuál es la forma factorizada de x² − 9?',opts:['(x−3)(x+3)','(x−9)(x+1)','(x−3)²','(x+9)(x−1)'],ans:0,hint:'Diferencia de cuadrados.',exp:'x²−3²=(x−3)(x+3)'},
+    {type:'multiple',topic:'Factorización',diff:'medium',q:'Factoriza: x² + 5x + 6',opts:['(x+2)(x+3)','(x+1)(x+6)','(x−2)(x−3)','(x+6)(x−1)'],ans:0,hint:'Busca dos números que sumen 5 y multipliquen 6.',exp:'2+3=5, 2×3=6 → (x+2)(x+3)'},
+    {type:'multiple',topic:'Factorización',diff:'hard',q:'Factoriza: 2x² − 8x',opts:['2x(x−4)','2(x²−4x)','x(2x−8)','2x(x+4)'],ans:0,hint:'Saca factor común 2x.',exp:'2x²−8x=2x(x−4)'},
+    {type:'multiple',topic:'Factorización',diff:'hard',q:'Factoriza completamente: x² − 16',opts:['(x−4)²','(x+4)(x−4)','(x−16)(x+1)','(x−8)(x+2)'],ans:1,hint:'a²−b²=(a+b)(a−b) con a=x, b=4.',exp:'x²−4²=(x+4)(x−4)'},
+    // ── PORCENTAJES ──
+    {type:'multiple',topic:'Porcentaje',diff:'easy',q:'Camiseta de $250 con 30% descuento. ¿Cuánto pagas?',opts:['$175','$150','$185','$200'],ans:0,hint:'30% de 250 = 75.',exp:'250−75=$175'},
+    {type:'multiple',topic:'Porcentaje',diff:'medium',q:'Un artículo costaba $400 y subió 15%. ¿Cuánto cuesta ahora?',opts:['$460','$415','$450','$440'],ans:0,hint:'400×0.15=60.',exp:'400+60=$460'},
+    {type:'input',topic:'Porcentaje',diff:'medium',q:'¿Cuánto es el 35% de 200?',ans:'70',hint:'200×35÷100.',exp:'200×0.35=70'},
+    // ── RAZONES Y PROPORCIONES ──
+    {type:'multiple',topic:'Razones',diff:'medium',q:'Proporción agua:jugo = 3:2. Con 15 L de agua, ¿cuántos L de jugo?',opts:['8','10','12','6'],ans:1,hint:'3/2 = 15/x',exp:'x=10 litros'},
+    {type:'multiple',topic:'Proporciones',diff:'medium',q:'Si 4 obreros construyen un muro en 6 días, ¿cuántos días tardan 3 obreros?',opts:['8 días','9 días','7 días','10 días'],ans:0,hint:'Proporción inversa: más obreros, menos días.',exp:'4×6=3×x → x=8 días'},
+    {type:'multiple',topic:'Proporciones',diff:'hard',q:'Se mezclan 3 kg de café a $80/kg con 2 kg a $50/kg. ¿Cuál es el precio promedio por kg?',opts:['$68','$65','$70','$72'],ans:0,hint:'Suma total ÷ total kg.',exp:'(240+100)÷5=$68/kg'},
+    // ── GEOMETRÍA ──
+    {type:'multiple',topic:'Geometría',diff:'medium',q:'Triángulo base 10 cm y altura 8 cm. ¿Cuál es su área?',opts:['80 cm²','40 cm²','45 cm²','20 cm²'],ans:1,hint:'A=(base×altura)÷2',exp:'(10×8)/2=40 cm²'},
+    {type:'multiple',topic:'Geometría',diff:'medium',q:'¿Cuánto mide la diagonal de un cuadrado de lado 5 cm? (en cm, redondeado)',opts:['7 cm','8 cm','10 cm','5 cm'],ans:0,hint:'d=lado×√2.',exp:'5×1.414≈7.07≈7 cm'},
+    {type:'multiple',topic:'Geometría',diff:'hard',q:'Un cilindro tiene radio 3 cm y altura 10 cm. ¿Cuál es su volumen? (usa π≈3.14)',opts:['282.6 cm³','94.2 cm³','188.4 cm³','314 cm³'],ans:0,hint:'V=π×r²×h.',exp:'3.14×9×10=282.6 cm³'},
+    // ── ACERTIJOS DIFÍCILES ──
+    {type:'multiple',topic:'Acertijo',diff:'hard',q:'Tren de 200 m a 60 km/h cruza puente de 400 m. ¿Cuántos segundos tarda?',opts:['24 s','36 s','30 s','20 s'],ans:1,hint:'Distancia total=tren+puente.',exp:'600m ÷ 16.67m/s ≈ 36 s'},
+    {type:'multiple',topic:'Lógica',diff:'hard',q:'Pedro es el doble de viejo que Juan. En 10 años, la suma de sus edades será 65. ¿Cuántos años tiene Pedro ahora?',opts:['25','30','35','20'],ans:1,hint:'P=2J y (P+10)+(J+10)=65.',exp:'3J+20=65 → J=15, P=30'},
+    {type:'multiple',topic:'Acertijo',diff:'medium',q:'¿Cuántos cuadrados hay en total en un tablero 3×3?',opts:['9','14','13','16'],ans:1,hint:'Cuenta cuadrados de 1×1, 2×2 y 3×3.',exp:'9+4+1=14 cuadrados'},
+    // ── ESTADÍSTICA ──
+    {type:'multiple',topic:'Estadística',diff:'medium',q:'Las calificaciones de 5 alumnos son: 8, 9, 7, 10, 6. ¿Cuál es el promedio?',opts:['7.5','8','8.5','9'],ans:1,hint:'Suma todo y divide entre 5.',exp:'(8+9+7+10+6)÷5=40÷5=8'},
+    {type:'multiple',topic:'Estadística',diff:'medium',q:'En el conjunto {3, 7, 5, 7, 9, 7, 4}, ¿cuál es la moda?',opts:['5','7','9','4'],ans:1,hint:'El valor que más se repite.',exp:'7 aparece 3 veces → moda=7'},
   ],
+
   prepa:[
-    {type:'multiple',topic:'Funciones',q:'¿Cuál es el dominio de f(x) = √(x − 4)?',opts:['x ≥ 4','x > 4','x ≤ 4','Todos los reales'],ans:0,hint:'La raíz requiere argumento ≥ 0.',exp:'x−4≥0 → x≥4'},
-    {type:'multiple',topic:'Trigonometría',q:'¿Cuánto es sen(30°)?',opts:['√3/2','1/2','1/√2','√3'],ans:1,hint:'Triángulo 30-60-90.',exp:'sen(30°)=1/2'},
-    {type:'input',topic:'Logaritmos',q:'¿Cuánto es log₂(64)?',ans:'6',hint:'2 a qué potencia = 64?',exp:'2⁶=64 → log₂(64)=6'},
-    {type:'multiple',topic:'Probabilidad',q:'Baraja de 52 cartas: ¿cuál es P(sacar un As)?',opts:['1/13','1/4','1/52','4/13'],ans:0,hint:'Hay 4 ases en 52 cartas.',exp:'4/52=1/13'},
-    {type:'multiple',topic:'Álgebra',q:'¿Cuáles son las raíces de x² − 5x + 6 = 0?',opts:['x=2, x=3','x=1, x=6','x=−2, x=−3','x=2, x=−3'],ans:0,hint:'Factoriza buscando factores de 6 que sumen 5.',exp:'(x−2)(x−3)=0'},
-    {type:'multiple',topic:'Trigonometría',q:'Hipotenusa 13, cateto 5. ¿Cuánto mide el otro cateto?',opts:['8','12','10','11'],ans:1,hint:'a²+b²=c²',exp:'5²+b²=13² → b=12'},
-    {type:'input',topic:'Progresión',q:'Suma de los primeros 10 términos de PA con a₁=3 y d=4.',ans:'210',hint:'Sₙ=n/2×(2a₁+(n−1)d)',exp:'5×42=210'},
-    {type:'multiple',topic:'Funciones',q:'f(x)=x²+1 y g(x)=2x. ¿Cuánto es f(g(3))?',opts:['37','19','49','13'],ans:0,hint:'Primero calcula g(3).',exp:'g(3)=6, f(6)=37'},
-    {type:'multiple',topic:'Logaritmos',q:'¿Cuánto es ln(e⁵)?',opts:['5','e⁵','5e','ln5'],ans:0,hint:'ln y e son funciones inversas.',exp:'ln(e⁵)=5'},
-    {type:'multiple',topic:'Acertijo',q:'¿Cuántos ceros tiene 100! (factorial)?',opts:['20','24','25','22'],ans:1,hint:'Cuenta múltiplos de 5.',exp:'⌊100/5⌋+⌊100/25⌋=24'},
+    // ── CUADRÁTICAS ──
+    {type:'multiple',topic:'Cuadrática',diff:'medium',q:'¿Cuáles son las raíces de x² − 5x + 6 = 0?',opts:['x=2, x=3','x=1, x=6','x=−2, x=−3','x=2, x=−3'],ans:0,hint:'Factoriza: busca factores de 6 que sumen 5.',exp:'(x−2)(x−3)=0 → x=2, x=3'},
+    {type:'multiple',topic:'Cuadrática',diff:'medium',q:'¿Cuáles son las raíces de x² − x − 12 = 0?',opts:['x=3, x=−4','x=4, x=−3','x=6, x=−2','x=4, x=3'],ans:1,hint:'Busca factores de −12 que sumen −1.',exp:'(x−4)(x+3)=0 → x=4, x=−3'},
+    {type:'multiple',topic:'Cuadrática',diff:'hard',q:'Usando la fórmula general, resuelve: x² − 4x − 5 = 0',opts:['x=5, x=−1','x=−5, x=1','x=2, x=−5','x=5, x=1'],ans:0,hint:'x=(4±√(16+20))/2=(4±6)/2.',exp:'x=(4+6)/2=5 y x=(4−6)/2=−1'},
+    {type:'multiple',topic:'Cuadrática',diff:'hard',q:'¿Cuánto vale el discriminante de 2x² + 3x − 5 = 0?',opts:['49','−31','9','31'],ans:0,hint:'Δ=b²−4ac=9−4(2)(−5).',exp:'Δ=9+40=49'},
+    {type:'input',topic:'Cuadrática',diff:'hard',q:'¿Cuál es la suma de las raíces de x² − 7x + 12 = 0?',ans:'7',hint:'Suma de raíces = −b/a.',exp:'−(−7)/1=7'},
+    {type:'multiple',topic:'Cuadrática',diff:'hard',q:'¿Cuál es el vértice de f(x) = x² − 6x + 5?',opts:['(3,−4)','(3,4)','(−3,4)','(6,5)'],ans:0,hint:'x_v=−b/(2a)=3, y_v=f(3).',exp:'f(3)=9−18+5=−4 → vértice (3,−4)'},
+    // ── SISTEMAS DE ECUACIONES ──
+    {type:'multiple',topic:'Sistemas',diff:'hard',q:'Resuelve el sistema: x+y=10, x−y=4. ¿Cuánto vale x?',opts:['6','7','8','5'],ans:1,hint:'Suma las dos ecuaciones.',exp:'2x=14 → x=7, y=3'},
+    {type:'multiple',topic:'Sistemas',diff:'hard',q:'Resuelve: 2x+y=8, x+2y=7. ¿Cuánto vale y?',opts:['1','2','3','4'],ans:1,hint:'Multiplica la 2ª ecuación por 2 y resta.',exp:'2x+y=8 y 2x+4y=14 → 3y=6 → y=2'},
+    {type:'multiple',topic:'Sistemas',diff:'hard',q:'Dos números suman 20 y su diferencia es 6. ¿Cuál es el número mayor?',opts:['11','13','14','12'],ans:1,hint:'x+y=20, x−y=6.',exp:'2x=26 → x=13'},
+    {type:'multiple',topic:'Sistemas',diff:'hard',q:'Resuelve: 3x−2y=12, x+y=6. ¿Cuánto vale x?',opts:['4.8','5','6','4'],ans:0,hint:'Sustituye y=6−x en la primera ecuación.',exp:'3x−2(6−x)=12 → 5x=24 → x=4.8'},
+    {type:'input',topic:'Sistemas',diff:'hard',q:'Si x+y=15 y x×y=56, ¿cuánto vale x+y al cuadrado? (x²+y²)',ans:'113',hint:'(x+y)²=x²+2xy+y².',exp:'225−2(56)=225−112=113'},
+    // ── FUNCIONES ──
+    {type:'multiple',topic:'Funciones',diff:'medium',q:'¿Cuál es el dominio de f(x) = √(x − 4)?',opts:['x ≥ 4','x > 4','x ≤ 4','Todos los reales'],ans:0,hint:'La raíz requiere argumento ≥ 0.',exp:'x−4≥0 → x≥4'},
+    {type:'multiple',topic:'Funciones',diff:'hard',q:'f(x)=x²+1 y g(x)=2x. ¿Cuánto es f(g(3))?',opts:['37','19','49','13'],ans:0,hint:'Primero calcula g(3).',exp:'g(3)=6, f(6)=37'},
+    {type:'multiple',topic:'Funciones',diff:'hard',q:'¿Cuál es la inversa de f(x) = 2x + 6?',opts:['f⁻¹(x)=(x−6)/2','f⁻¹(x)=(x+6)/2','f⁻¹(x)=2x−6','f⁻¹(x)=x/2'],ans:0,hint:'Despeja x: y=2x+6 → x=(y−6)/2.',exp:'f⁻¹(x)=(x−6)/2'},
+    {type:'multiple',topic:'Funciones',diff:'medium',q:'¿En qué punto corta la recta y=2x+4 al eje y?',opts:['(0,4)','(4,0)','(−2,0)','(2,4)'],ans:0,hint:'Cuando x=0.',exp:'y=2(0)+4=4 → punto (0,4)'},
+    // ── TRIGONOMETRÍA ──
+    {type:'multiple',topic:'Trigonometría',diff:'medium',q:'¿Cuánto es sen(30°)?',opts:['√3/2','1/2','1/√2','√3'],ans:1,hint:'Triángulo 30-60-90.',exp:'sen(30°)=1/2'},
+    {type:'multiple',topic:'Trigonometría',diff:'medium',q:'¿Cuánto es cos(60°)?',opts:['√3/2','1/2','1','0'],ans:1,hint:'Triángulo 30-60-90.',exp:'cos(60°)=1/2'},
+    {type:'multiple',topic:'Trigonometría',diff:'hard',q:'Hipotenusa 13, cateto 5. ¿Cuánto mide el otro cateto?',opts:['8','12','10','11'],ans:1,hint:'a²+b²=c²',exp:'5²+b²=13² → b=12'},
+    {type:'multiple',topic:'Trigonometría',diff:'hard',q:'¿Cuánto es tan(45°)?',opts:['0','√2','1','1/√2'],ans:2,hint:'tan=sen/cos=1/1.',exp:'tan(45°)=1'},
+    {type:'multiple',topic:'Trigonometría',diff:'hard',q:'En un triángulo rectángulo, el ángulo A=30° y el cateto opuesto=10. ¿Cuánto mide la hipotenusa?',opts:['15','20','10√3','5'],ans:1,hint:'sen(30°)=opuesto/hipotenusa.',exp:'hipotenusa=10/sen(30°)=10/0.5=20'},
+    // ── LOGARITMOS ──
+    {type:'input',topic:'Logaritmos',diff:'medium',q:'¿Cuánto es log₂(64)?',ans:'6',hint:'2 a qué potencia = 64?',exp:'2⁶=64 → log₂(64)=6'},
+    {type:'multiple',topic:'Logaritmos',diff:'medium',q:'¿Cuánto es ln(e⁵)?',opts:['5','e⁵','5e','ln5'],ans:0,hint:'ln y e son funciones inversas.',exp:'ln(e⁵)=5'},
+    {type:'multiple',topic:'Logaritmos',diff:'hard',q:'¿Cuánto es log₁₀(1000)?',opts:['3','100','1000','10'],ans:0,hint:'10 a qué potencia = 1000?',exp:'10³=1000 → log=3'},
+    {type:'multiple',topic:'Logaritmos',diff:'hard',q:'Simplifica: log(a²b) usando propiedades.',opts:['2log(a)+log(b)','log(a²)+log(b)','log(2a)+log(b)','2(log(a)+log(b))'],ans:0,hint:'log(xy)=log(x)+log(y), log(xⁿ)=n·log(x).',exp:'log(a²)+log(b)=2log(a)+log(b)'},
+    // ── PROBABILIDAD Y COMBINATORIA ──
+    {type:'multiple',topic:'Probabilidad',diff:'medium',q:'Baraja de 52 cartas: ¿cuál es P(sacar un As)?',opts:['1/13','1/4','1/52','4/13'],ans:0,hint:'Hay 4 ases en 52 cartas.',exp:'4/52=1/13'},
+    {type:'multiple',topic:'Probabilidad',diff:'hard',q:'Se lanza un dado 2 veces. ¿Cuál es P(obtener 6 en ambos lanzamientos)?',opts:['1/6','1/12','1/36','1/18'],ans:2,hint:'P(6)×P(6)=1/6×1/6.',exp:'1/36'},
+    {type:'multiple',topic:'Combinatoria',diff:'hard',q:'¿Cuántas combinaciones de 2 personas se pueden elegir de un grupo de 5?',opts:['10','20','25','5'],ans:0,hint:'C(5,2)=5!/(2!×3!).',exp:'(5×4)/2=10 combinaciones'},
+    // ── PROGRESIONES ──
+    {type:'input',topic:'Progresión',diff:'hard',q:'Suma de los primeros 10 términos de PA con a₁=3 y d=4.',ans:'210',hint:'Sₙ=n/2×(2a₁+(n−1)d)',exp:'5×42=210'},
+    {type:'multiple',topic:'Progresión',diff:'hard',q:'En una PG con a₁=2 y r=3, ¿cuál es el 5° término?',opts:['162','486','54','18'],ans:0,hint:'aₙ=a₁×rⁿ⁻¹.',exp:'2×3⁴=2×81=162'},
+    {type:'multiple',topic:'Progresión',diff:'medium',q:'¿Cuál es el término 8 de la PA: 5, 9, 13, 17, ...?',opts:['33','35','37','29'],ans:0,hint:'aₙ=a₁+(n−1)d.',exp:'5+(8−1)×4=5+28=33'},
+    // ── GEOMETRÍA ANALÍTICA ──
+    {type:'multiple',topic:'Geometría Analítica',diff:'hard',q:'¿Cuál es la distancia entre los puntos (1,2) y (4,6)?',opts:['5','4','7','√7'],ans:0,hint:'d=√((x₂−x₁)²+(y₂−y₁)²).',exp:'√(9+16)=√25=5'},
+    {type:'multiple',topic:'Geometría Analítica',diff:'hard',q:'¿Cuál es la pendiente de la recta que pasa por (2,3) y (6,7)?',opts:['1','2','1/2','4'],ans:0,hint:'m=(y₂−y₁)/(x₂−x₁).',exp:'(7−3)/(6−2)=4/4=1'},
+    // ── ACERTIJOS COMPLEJOS ──
+    {type:'multiple',topic:'Acertijo',diff:'hard',q:'¿Cuántos ceros tiene 100! (factorial)?',opts:['20','24','25','22'],ans:1,hint:'Cuenta múltiplos de 5.',exp:'⌊100/5⌋+⌊100/25⌋=24'},
+    {type:'multiple',topic:'Lógica',diff:'hard',q:'Si f(x+1)=f(x)+4 y f(1)=3, ¿cuánto vale f(6)?',opts:['19','23','27','15'],ans:1,hint:'Es una progresión aritmética.',exp:'f(6)=f(1)+5×4=3+20=23'},
+    // ── ESTADÍSTICA ──
+    {type:'multiple',topic:'Estadística',diff:'medium',q:'La mediana de {5,3,8,1,7} es:',opts:['3','5','7','4'],ans:1,hint:'Ordena el conjunto: {1,3,5,7,8}.',exp:'El valor central es 5'},
+    {type:'multiple',topic:'Estadística',diff:'hard',q:'La desviación estándar mide…',opts:['El valor central','La dispersión de los datos','El valor máximo','La mediana'],ans:1,hint:'Indica qué tan dispersos están los datos.',exp:'La desviación estándar mide la dispersión respecto a la media'},
+    // ── CÁLCULO INTRO ──
+    {type:'multiple',topic:'Cálculo',diff:'hard',q:'¿Cuál es la derivada de f(x) = x³ + 2x?',opts:['3x²+2','x²+2','3x+2','3x²'],ans:0,hint:'Aplica regla de potencia: d/dx(xⁿ)=nxⁿ⁻¹.',exp:"f'(x)=3x²+2"},
+    {type:'multiple',topic:'Cálculo',diff:'hard',q:'¿Cuál es el límite de (x²−1)/(x−1) cuando x→1?',opts:['0','1','2','indefinido'],ans:2,hint:'Factoriza el numerador.',exp:'(x+1)(x−1)/(x−1)=x+1 → 2 cuando x→1'},
   ]
 };
 
@@ -923,20 +1040,52 @@ const BANKS={
 // ═══════════════════════════════════════════════
 let currentLevel='',questions=[],qIndex=0,score=0,lives=3,correct=0,wrong=0;
 let timerInterval=null,timeLeft=0,answered=false;
-const TOTAL_Q=10,TIME_PER_Q=25;
-const TOPIC_COLORS={'Suma':'#00e5ff','Resta':'#00e5ff','Multiplicación':'#00e5ff','División':'#00e5ff',
-  'Fracciones':'#00e5ff','Geometría':'#22c55e','Acertijo':'#f59e0b','Secuencia':'#f59e0b',
+const TOTAL_Q=10;
+// Tiempo base por dificultad de pregunta: 'easy'=25, 'medium'=35, 'hard'=45
+const TIME_EASY=25, TIME_MEDIUM=35, TIME_HARD=45;
+const TOPIC_COLORS={
+  'Suma':'#00e5ff','Resta':'#00e5ff','Multiplicación':'#00e5ff','División':'#00e5ff',
+  'Fracciones':'#00d4aa','Geometría':'#22c55e','Acertijo':'#f59e0b','Secuencia':'#f59e0b',
+  'Lógica':'#f59e0b','Patrones':'#f59e0b','MCD/MCM':'#00d4aa','Decimales':'#00d4aa',
   'Álgebra':'#ff6f00','Potencias':'#ff6f00','Ecuación':'#ff6f00','Porcentaje':'#22c55e',
-  'Factorización':'#ff6f00','Razones':'#22c55e',
+  'Factorización':'#ff6f00','Razones':'#22c55e','Proporciones':'#22c55e',
   'Funciones':'#b400ff','Trigonometría':'#b400ff','Logaritmos':'#b400ff',
-  'Probabilidad':'#f59e0b','Progresión':'#b400ff'};
+  'Probabilidad':'#f59e0b','Progresión':'#b400ff','Cuadrática':'#e040fb',
+  'Sistemas':'#e040fb','Geometría Analítica':'#7c4dff','Combinatoria':'#f59e0b',
+  'Estadística':'#22c55e','Cálculo':'#e040fb'
+};
+
+// Racha (streak) system
+let streakCount=0;
+const PLAYED_KEYS={primaria:'played_primaria',secundaria:'played_secundaria',prepa:'played_prepa'};
+
+function getPlayedIds(lv){
+  try{const v=sessionStorage.getItem(PLAYED_KEYS[lv]);return v?JSON.parse(v):[];}catch(e){return[];}
+}
+function markPlayed(lv,ids){
+  try{
+    let played=getPlayedIds(lv);
+    played=[...new Set([...played,...ids])];
+    // Si ya se jugaron más del 80% del banco, reinicia
+    if(played.length>BANKS[lv].length*0.8)played=ids;
+    sessionStorage.setItem(PLAYED_KEYS[lv],JSON.stringify(played));
+  }catch(e){}
+}
 
 function shuffle(arr){return[...arr].sort(()=>Math.random()-.5);}
 
 function startLevel(lv){
   currentLevel=lv;setAccent(lv);
-  questions=shuffle(BANKS[lv]).slice(0,TOTAL_Q);
-  qIndex=0;score=0;lives=3;correct=0;wrong=0;
+  const bank=BANKS[lv];
+  const played=getPlayedIds(lv);
+  // Priorizar preguntas no jugadas
+  const fresh=bank.filter((_,i)=>!played.includes(i));
+  const pool=fresh.length>=TOTAL_Q ? fresh : [...fresh,...bank.filter((_,i)=>played.includes(i))];
+  const selected=shuffle(pool).slice(0,TOTAL_Q);
+  const selectedIds=selected.map(q=>bank.indexOf(q));
+  markPlayed(lv,selectedIds);
+  questions=selected;
+  qIndex=0;score=0;lives=3;correct=0;wrong=0;streakCount=0;
   showScreen('game');
   document.getElementById('levelBadge').textContent=lv.charAt(0).toUpperCase()+lv.slice(1);
   document.getElementById('levelBadge').className='level-badge badge-'+lv;
@@ -948,9 +1097,14 @@ function renderQuestion(){
   const q=questions[qIndex];updateHUD();
   document.getElementById('progressBar').style.width=(qIndex/TOTAL_Q*100)+'%';
   const tc=TOPIC_COLORS[q.topic]||'#888';
+  const diffLabel=q.diff==='hard'?'🔴 Difícil':q.diff==='medium'?'🟡 Medio':'🟢 Fácil';
+  const diffColor=q.diff==='hard'?'#e040fb':q.diff==='medium'?'#f59e0b':'#00ff88';
   document.getElementById('questionCard').innerHTML=`
     <div class="q-number">Pregunta ${qIndex+1} de ${TOTAL_Q}</div>
-    <span class="q-type-badge" style="background:${tc}22;color:${tc};border:1px solid ${tc}44">${q.topic}</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <span class="q-type-badge" style="background:${tc}22;color:${tc};border:1px solid ${tc}44">${q.topic}</span>
+      <span style="font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:20px;background:${diffColor}18;color:${diffColor};border:1px solid ${diffColor}44">${diffLabel}</span>
+    </div>
     <div class="q-text">${q.q}</div>
     <div class="q-hint">💡 ${q.hint}</div>
     ${q.type==='multiple'?renderOpts(q):renderInp(q)}
@@ -961,15 +1115,27 @@ function renderQuestion(){
 function renderOpts(q){return`<div class="options-grid">${q.opts.map((o,i)=>`<button class="option-btn" id="opt${i}" onclick="selectOption(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>`;}
 function renderInp(q){return`<div class="input-wrap"><input class="answer-input" id="answerInput" type="text" placeholder="Tu respuesta..." onkeydown="if(event.key==='Enter')checkInput()"><button class="btn-submit" onclick="checkInput()">OK</button></div>`;}
 
+function getTimeForQ(q){
+  if(q.diff==='hard')return TIME_HARD;
+  if(q.diff==='medium')return TIME_MEDIUM;
+  return TIME_EASY;
+}
+let currentQTime=TIME_EASY;
 function startTimer(){
-  clearInterval(timerInterval);timeLeft=TIME_PER_Q;
+  const q=questions[qIndex];
+  currentQTime=getTimeForQ(q);
+  clearInterval(timerInterval);timeLeft=currentQTime;
   const bar=document.getElementById('timerBar');
+  const timeEl=document.getElementById('timeIndicator');
+  if(timeEl){timeEl.textContent=currentQTime+'s';
+    timeEl.style.color=currentQTime>=TIME_HARD?'#e040fb':currentQTime>=TIME_MEDIUM?'var(--gold)':'var(--accent)';}
   bar.style.width='100%';bar.style.background='var(--accent)';
   timerInterval=setInterval(()=>{
     timeLeft--;
-    const pct=timeLeft/TIME_PER_Q*100;
+    const pct=timeLeft/currentQTime*100;
     bar.style.width=pct+'%';
     bar.style.background=pct<30?'var(--red)':pct<60?'var(--gold)':'var(--accent)';
+    if(timeEl)timeEl.textContent=timeLeft+'s';
     if(timeLeft<=0){clearInterval(timerInterval);if(!answered)timeOut();}
   },1000);
 }
@@ -997,9 +1163,29 @@ function checkInput(){
   handleResult(ok,q);
 }
 function handleResult(ok,q){
-  if(ok){correct++;const pts=100+Math.ceil(timeLeft*3);score+=pts;spawnParticle('⭐');showFeedback(true,`✅ ¡Correcto! +${pts} pts — ${q.exp}`);}
-  else{wrong++;lives=Math.max(0,lives-1);showFeedback(false,`❌ La respuesta era: ${q.exp}`);}
+  if(ok){
+    correct++;streakCount++;
+    const diffBonus=q.diff==='hard'?200:q.diff==='medium'?150:100;
+    const timeBonus=Math.ceil(timeLeft*3);
+    const streakBonus=streakCount>=3?Math.min(streakCount*20,100):0;
+    const pts=diffBonus+timeBonus+streakBonus;
+    score+=pts;
+    spawnParticle('⭐');
+    const bonusMsg=streakBonus>0?` 🔥 RACHA x${streakCount} (+${streakBonus})`:'';
+    showFeedback(true,`✅ ¡Correcto! +${pts} pts${bonusMsg} — ${q.exp}`);
+    if(streakCount===3)spawnParticle('🔥');
+    if(streakCount===5){spawnParticle('🔥');spawnParticle('⚡');}
+  }
+  else{wrong++;lives=Math.max(0,lives-1);streakCount=0;showFeedback(false,`❌ La respuesta era: ${q.exp}`);}
   updateHUD();document.getElementById('btnNext').style.display='block';
+}
+function updateHUD(){
+  document.getElementById('scoreDisplay').textContent=score;
+  document.getElementById('livesDisplay').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
+  document.getElementById('qIndexDisplay').textContent=`${qIndex+1}/${TOTAL_Q}`;
+  // streak badge in levelBadge area
+  const sb=document.getElementById('streakBadge');
+  if(sb)sb.textContent=streakCount>=2?`🔥×${streakCount}`:'';
 }
 function showFeedback(ok,text){
   const fb=document.getElementById('feedback');
@@ -1009,11 +1195,6 @@ function nextQuestion(){
   qIndex++;
   if(qIndex>=TOTAL_Q||lives<=0)showResultsQ();
   else renderQuestion();
-}
-function updateHUD(){
-  document.getElementById('scoreDisplay').textContent=score;
-  document.getElementById('livesDisplay').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
-  document.getElementById('qIndexDisplay').textContent=`${qIndex+1}/${TOTAL_Q}`;
 }
 function showResultsQ(){
   clearInterval(timerInterval);
@@ -1592,17 +1773,103 @@ function checkSeq(idx,d,btn){
 function nextSeq(){seqIdx++;renderSequence();}
 
 // ═══════════════════════════════════════════════
+// ⚡ RELÁMPAGO MINI — Cálculo mental rápido
+// ═══════════════════════════════════════════════
+const RELAMPAGO_BANK=[
+  {q:'7 × 8 =',ans:'56'},{q:'144 ÷ 12 =',ans:'12'},{q:'13 × 13 =',ans:'169'},
+  {q:'√225 =',ans:'15'},{q:'15% de 80 =',ans:'12'},{q:'2⁷ =',ans:'128'},
+  {q:'36 ÷ 9 × 3 =',ans:'12'},{q:'100 − 37 =',ans:'63'},{q:'8 × 7 + 6 =',ans:'62'},
+  {q:'√121 =',ans:'11'},{q:'25 × 4 =',ans:'100'},{q:'18 ÷ 3 + 9 =',ans:'15'},
+  {q:'5² + 3² =',ans:'34'},{q:'72 ÷ 8 =',ans:'9'},{q:'11 × 11 =',ans:'121'},
+  {q:'40% de 50 =',ans:'20'},{q:'3³ =',ans:'27'},{q:'56 ÷ 7 =',ans:'8'},
+  {q:'15 × 6 =',ans:'90'},{q:'√64 + √36 =',ans:'14'},{q:'9 × 9 =',ans:'81'},
+  {q:'200 ÷ 25 =',ans:'8'},{q:'7² − 5² =',ans:'24'},{q:'4 × 13 =',ans:'52'},
+  {q:'125 ÷ 5 =',ans:'25'},{q:'6 × 8 − 10 =',ans:'38'},{q:'√400 =',ans:'20'},
+  {q:'3 × 4 × 5 =',ans:'60'},{q:'48 ÷ 6 =',ans:'8'},{q:'17 × 3 =',ans:'51'},
+];
+let rPool=[],rIdx=0,rScore=0,rCor=0,rWrong=0,rTimer=null,rTimeLeft=0;
+const R_TOTAL=10, R_TIME_PER_Q=8; // 8 segundos por pregunta = ¡relámpago!
+
+function initRelampago(){
+  rPool=shuffle([...RELAMPAGO_BANK]).slice(0,R_TOTAL);
+  rIdx=0;rScore=0;rCor=0;rWrong=0;
+  document.getElementById('miniTitle').textContent='⚡ Relámpago';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+R_TOTAL;
+  showScreen('miniGame');renderRelampago();
+}
+function renderRelampago(){
+  if(rIdx>=R_TOTAL){
+    clearInterval(rTimer);
+    const pct=Math.round(rCor/R_TOTAL*100);
+    const isNew=checkAndSaveRecord('m-relampago',rScore,{correct:rCor});
+    showResultsScreen(rCor,rWrong,rScore,pct,isNew,initRelampago);return;
+  }
+  const q=rPool[rIdx];rTimeLeft=R_TIME_PER_Q;
+  document.getElementById('miniProgress').textContent=(rIdx+1)+'/'+R_TOTAL;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(255,51,102,.08);border-color:rgba(255,51,102,.3);color:#ff3366">⚡ ¡${R_TIME_PER_Q} segundos por respuesta!</div>
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="height:6px;background:var(--surface2);border-radius:8px;overflow:hidden;margin-bottom:14px">
+        <div id="rBar" style="height:100%;background:#ff3366;border-radius:8px;width:100%;transition:width .1s linear"></div>
+      </div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:900;color:var(--gold);letter-spacing:3px;margin-bottom:16px">${q.q}</div>
+    </div>
+    <div class="input-wrap" style="justify-content:center">
+      <input class="answer-input" id="rInput" type="text" inputmode="numeric" placeholder="?" autofocus
+        style="width:130px;font-size:1.8rem;text-align:center"
+        onkeydown="if(event.key==='Enter')checkRelampago()">
+      <button class="btn-submit" onclick="checkRelampago()" style="font-size:1rem">✓</button>
+    </div>
+    <div id="rFb" style="text-align:center;font-weight:800;font-size:1rem;margin-top:14px;min-height:28px"></div>`;
+  clearInterval(rTimer);
+  rTimer=setInterval(()=>{
+    rTimeLeft-=0.1;
+    const pct=rTimeLeft/R_TIME_PER_Q*100;
+    const bar=document.getElementById('rBar');
+    if(bar)bar.style.width=pct+'%';
+    if(rTimeLeft<=0){clearInterval(rTimer);rTimeoutRelampago();}
+  },100);
+  setTimeout(()=>{const inp=document.getElementById('rInput');if(inp)inp.focus();},100);
+}
+function checkRelampago(){
+  clearInterval(rTimer);
+  const inp=document.getElementById('rInput');if(!inp)return;
+  const val=inp.value.trim();
+  const q=rPool[rIdx];
+  const ok=val===q.ans;
+  inp.disabled=true;
+  inp.classList.add(ok?'correct':'wrong');
+  const fb=document.getElementById('rFb');
+  if(ok){rCor++;const pts=100+Math.round(rTimeLeft*15);rScore+=pts;
+    document.getElementById('miniScore').textContent=rScore;
+    if(fb)fb.innerHTML=`<span style="color:var(--green)">✅ +${pts} pts</span>`;
+    spawnParticle('⚡');}
+  else{rWrong++;
+    if(fb)fb.innerHTML=`<span style="color:var(--red)">❌ Era ${q.ans}</span>`;}
+  rIdx++;
+  setTimeout(renderRelampago,800);
+}
+function rTimeoutRelampago(){
+  const inp=document.getElementById('rInput');if(inp){inp.disabled=true;inp.classList.add('wrong');}
+  const fb=document.getElementById('rFb');
+  if(fb)fb.innerHTML=`<span style="color:var(--red)">⏰ Era ${rPool[rIdx].ans}</span>`;
+  rWrong++;rIdx++;
+  setTimeout(renderRelampago,800);
+}
+
+// ═══════════════════════════════════════════════
 // MINI GAME ROUTER
 // ═══════════════════════════════════════════════
 function startMini(game){
-  stopSnake();
+  stopSnake();clearInterval(rTimer||0);
   const accentMap={
     triangle:{a:'#00e5ff',a2:'#0077ff'},star:{a:'#ffd700',a2:'#ff8c00'},
     cross:{a:'#00ff88',a2:'#00bb66'},snake:{a:'#4d96ff',a2:'#c77dff'},
     analogy:{a:'#b400ff',a2:'#6600ff'},memory:{a:'#ff6f00',a2:'#ff0055'},
-    sequence:{a:'#00ff88',a2:'#00aaff'}
+    sequence:{a:'#00ff88',a2:'#00aaff'},relampago:{a:'#ff3366',a2:'#ff8800'}
   };
-  const ac=accentMap[game];
+  const ac=accentMap[game]||{a:'#00e5ff',a2:'#0077ff'};
   document.documentElement.style.setProperty('--accent',ac.a);
   document.documentElement.style.setProperty('--accent2',ac.a2);
   if(game==='triangle')initTriangle();
@@ -1612,6 +1879,7 @@ function startMini(game){
   else if(game==='analogy')initAnalogy();
   else if(game==='memory')initMemory();
   else if(game==='sequence')initSequence();
+  else if(game==='relampago')initRelampago();
 }
 
 // ═══════════════════════════════════════════════

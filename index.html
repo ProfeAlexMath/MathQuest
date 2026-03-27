@@ -12,12 +12,34 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <script>
+  // Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('Service Worker registrado'))
         .catch(err => console.log('Error al registrar SW', err));
     });
+  }
+
+  // PWA Install Prompt
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.display = 'flex';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.display = 'none';
+    deferredPrompt = null;
+  });
+
+  function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
   }
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -447,6 +469,11 @@ body::before{content:'';position:fixed;inset:0;
       por <strong>Profe Alex</strong> &nbsp;·&nbsp; Tu guía matemático
     </div>
   </div>
+
+  <!-- Botón instalar PWA -->
+  <button id="pwa-install-btn" onclick="installPWA()" style="display:none;align-items:center;gap:8px;margin:0 auto 16px;padding:10px 22px;background:linear-gradient(135deg,#00e5ff,#0077ff);color:#050a18;font-family:'Exo 2',sans-serif;font-weight:700;font-size:0.95rem;border:none;border-radius:50px;cursor:pointer;box-shadow:0 0 18px #00e5ff66;">
+    📲 Instalar MathQuest
+  </button>
 
   <div class="tab-bar">
     <button class="tab-btn active" id="tabLevels" onclick="switchTab('levels')">📚 Niveles</button>

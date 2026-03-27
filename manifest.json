@@ -5,17 +5,22 @@
     {
       "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "./index.html",
+  "background_color": "#050a18",
   "display": "standalone",
   "scope": "./",
-  "background_color": "#050a18",
-  "theme_color": "#00e5ff"
+  "theme_color": "#00e5ff",
+  "description": "Desafíos matemáticos espaciales con el Profe Alex.",
+  "orientation": "portrait",
+  "categories": ["education", "games"]
 }

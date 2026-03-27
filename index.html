@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MathQuest — Profe Alex</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00e5ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado'))
+        .catch(err => console.log('Error al registrar SW', err));
+    });
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#050a18; --surface:#0d1530; --surface2:#121d3e; --surface3:#0a1228;
+  --text:#e8f0ff; --dim:#5a6a9a;
+  --gold:#ffd700; --green:#00ff88; --red:#ff3366;
+  --accent:#00e5ff; --accent2:#0077ff;
+  --primaria:#00e5ff; --secundaria:#ff6f00; --prepa:#b400ff;
+  --glass: rgba(13,21,48,0.7);
+  --border-glow: rgba(0,229,255,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+body::before{content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 15% 15%,rgba(0,229,255,.09) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 85%,rgba(180,0,255,.09) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 15%,rgba(255,111,0,.04) 0%,transparent 45%);
+  pointer-events:none;z-index:0;}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+
+/* Nebula blobs */
+.nebula{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:nebulaDrift 18s ease-in-out infinite;}
+.nebula-1{width:500px;height:500px;background:radial-gradient(rgba(0,229,255,.06),transparent 70%);top:-100px;left:-150px;}
+.nebula-2{width:400px;height:400px;background:radial-gradient(rgba(180,0,255,.07),transparent 70%);bottom:-80px;right:-100px;animation-delay:-9s;}
+@keyframes nebulaDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.05)}}
+
+#app{position:relative;z-index:1;}
+.screen{display:none;min-height:100vh;padding:20px;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+@keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes twinkle2{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+@keyframes recordPulse{0%{box-shadow:0 0 0 0 rgba(255,215,0,.6)}100%{box-shadow:0 0 0 16px rgba(255,215,0,0)}}
+@keyframes glow{0%,100%{text-shadow:0 0 20px rgba(0,229,255,.4)}50%{text-shadow:0 0 40px rgba(0,229,255,.8),0 0 60px rgba(0,229,255,.3)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+@keyframes authorBadgePop{0%{opacity:0;transform:scale(0.8) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ═══ HOME ═══ */
+#home{justify-content:flex-start;gap:0;padding-top:24px;}
+.logo{text-align:center;animation:floatLogo 4s ease-in-out infinite;margin-bottom:8px;position:relative;}
+.logo h1{font-family:'Orbitron',sans-serif;font-size:clamp(2.4rem,7vw,5rem);font-weight:900;
+  background:linear-gradient(135deg,#00e5ff 0%,#b400ff 50%,#ff6f00 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:5px;animation:glow 3s ease-in-out infinite;}
+.logo-sub{font-size:.85rem;color:var(--dim);letter-spacing:3px;margin-top:2px;font-family:'Space Mono',monospace;}
+
+/* Author badge */
+.author-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(0,229,255,.1),rgba(180,0,255,.1));
+  border:1px solid rgba(0,229,255,.3);border-radius:30px;
+  padding:6px 16px;margin-top:8px;
+  font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:1px;
+  color:var(--accent);animation:authorBadgePop .6s ease forwards;
+  box-shadow:0 0 20px rgba(0,229,255,.1);}
+.author-badge .ab-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:twinkle 2s infinite;}
+
+.planet-icon{font-size:3.5rem;text-align:center;margin-bottom:4px;filter:drop-shadow(0 0 24px rgba(0,229,255,.7));}
+
+/* Tab bar */
+.tab-bar{display:flex;gap:6px;margin:16px 0 14px;background:var(--surface);border-radius:16px;padding:5px;width:100%;max-width:680px;}
+.tab-btn{flex:1;padding:9px 10px;border-radius:12px;border:none;background:transparent;
+  color:var(--dim);font-family:'Orbitron',sans-serif;font-size:.62rem;font-weight:700;
+  cursor:pointer;transition:.2s;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+.tab-btn.active{background:linear-gradient(135deg,var(--surface2),rgba(0,229,255,.08));color:var(--text);box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.tab-btn:hover:not(.active){color:var(--text);}
+
+/* Level cards */
+.level-cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:900px;width:100%;}
+.level-card{flex:1 1 220px;max-width:270px;
+  background:linear-gradient(160deg,var(--surface),var(--surface3));
+  border:1px solid transparent;border-radius:22px;padding:26px 20px;cursor:pointer;
+  position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;
+  backdrop-filter:blur(10px);}
+.level-card::after{content:'';position:absolute;inset:0;border-radius:21px;
+  background:linear-gradient(135deg,transparent,rgba(255,255,255,.02));pointer-events:none;}
+.level-card::before{content:'';position:absolute;inset:0;border-radius:20px;
+  background:linear-gradient(135deg,var(--c1),var(--c2));opacity:.06;transition:opacity .3s;}
+.level-card:hover{transform:translateY(-10px) scale(1.02);}
+.level-card:hover::before{opacity:.18;}
+.level-card[data-level="primaria"]{--c1:#00e5ff;--c2:#0077ff;border-color:rgba(0,229,255,.35);box-shadow:0 0 0 1px rgba(0,229,255,.1),0 8px 30px rgba(0,0,0,.3);}
+.level-card[data-level="secundaria"]{--c1:#ff6f00;--c2:#ff0066;border-color:rgba(255,111,0,.35);box-shadow:0 0 0 1px rgba(255,111,0,.1),0 8px 30px rgba(0,0,0,.3);}
+.level-card[data-level="prepa"]{--c1:#b400ff;--c2:#6600ff;border-color:rgba(180,0,255,.35);box-shadow:0 0 0 1px rgba(180,0,255,.1),0 8px 30px rgba(0,0,0,.3);}
+.level-card:hover[data-level="primaria"]{box-shadow:0 12px 50px rgba(0,229,255,.3),0 0 0 1px rgba(0,229,255,.4);}
+.level-card:hover[data-level="secundaria"]{box-shadow:0 12px 50px rgba(255,111,0,.3),0 0 0 1px rgba(255,111,0,.4);}
+.level-card:hover[data-level="prepa"]{box-shadow:0 12px 50px rgba(180,0,255,.3),0 0 0 1px rgba(180,0,255,.4);}
+.card-icon{font-size:2.6rem;margin-bottom:10px;filter:drop-shadow(0 0 12px rgba(255,255,255,.2));}
+.card-title{font-family:'Orbitron',sans-serif;font-size:1.15rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+.level-card[data-level="primaria"] .card-title{color:#00e5ff;}
+.level-card[data-level="secundaria"] .card-title{color:#ff6f00;}
+.level-card[data-level="prepa"] .card-title{color:#b400ff;}
+.card-desc{font-size:.82rem;color:var(--dim);line-height:1.5;}
+.card-topics{margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;}
+.topic-tag{font-size:.65rem;padding:3px 9px;border-radius:20px;font-weight:700;letter-spacing:.5px;}
+.level-card[data-level="primaria"] .topic-tag{background:rgba(0,229,255,.12);color:#00e5ff;}
+.level-card[data-level="secundaria"] .topic-tag{background:rgba(255,111,0,.12);color:#ff6f00;}
+.level-card[data-level="prepa"] .topic-tag{background:rgba(180,0,255,.12);color:#b400ff;}
+.card-record{margin-top:12px;font-size:.72rem;color:var(--gold);font-weight:700;font-family:'Space Mono',monospace;}
+
+/* Minigame cards */
+.mini-cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:960px;width:100%;}
+.mini-card{flex:1 1 150px;max-width:185px;
+  background:linear-gradient(160deg,var(--surface),var(--surface3));
+  border:1px solid transparent;border-radius:18px;padding:18px 14px;cursor:pointer;text-align:center;
+  position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;}
+.mini-card::before{content:'';position:absolute;inset:0;border-radius:17px;
+  background:linear-gradient(135deg,var(--mc1),var(--mc2));opacity:.06;transition:opacity .3s;}
+.mini-card:hover{transform:translateY(-6px) scale(1.04);}
+.mini-card:hover::before{opacity:.22;}
+.mini-card .m-icon{font-size:2.2rem;margin-bottom:7px;display:block;filter:drop-shadow(0 0 8px rgba(255,255,255,.2));}
+.mini-card .m-title{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.mini-card .m-desc{font-size:.7rem;color:var(--dim);line-height:1.4;}
+.mini-card .m-record{font-size:.67rem;color:var(--gold);font-weight:700;margin-top:8px;font-family:'Space Mono',monospace;}
+
+/* ═══ RECORDS PANEL ═══ */
+.records-panel{max-width:720px;width:100%;padding:0 8px;}
+.rec-section{margin-bottom:24px;}
+.rec-section-title{font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;
+  color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-left:4px;}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.rec-card{background:var(--surface);border-radius:14px;padding:14px 16px;
+  border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden;
+  transition:.2s;}
+.rec-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-2px);}
+.rec-card-name{font-size:.78rem;color:var(--dim);margin-bottom:4px;font-weight:600;}
+.rec-card-score{font-family:'Orbitron',sans-serif;font-size:1.45rem;font-weight:900;color:var(--gold);}
+.rec-card-detail{font-size:.7rem;color:var(--dim);margin-top:3px;font-family:'Space Mono',monospace;}
+.rec-card-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.6rem;opacity:.25;}
+.no-record{color:var(--dim);font-size:.85rem;padding:8px 0;}
+
+/* ═══ EXPLANATION PANEL ═══ */
+.explain-panel{max-width:800px;width:100%;padding:0 4px;}
+.explain-search{width:100%;background:var(--surface);border:1px solid rgba(255,255,255,.08);
+  color:var(--text);padding:12px 18px;border-radius:14px;font-family:'Exo 2',sans-serif;
+  font-size:.95rem;outline:none;margin-bottom:16px;transition:.2s;}
+.explain-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.1);}
+.explain-search::placeholder{color:var(--dim);}
+.explain-topic-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.etf-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:var(--dim);font-family:'Exo 2',sans-serif;font-size:.75rem;
+  font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.5px;}
+.etf-btn:hover,.etf-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.08);}
+.explain-cards{display:flex;flex-direction:column;gap:14px;}
+.explain-card{background:var(--surface);border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);transition:.2s;cursor:pointer;}
+.explain-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,0,0,.3);}
+.explain-card-header{display:flex;align-items:center;gap:14px;padding:16px 20px;}
+.explain-card-icon{font-size:2rem;flex-shrink:0;}
+.explain-card-meta{flex:1;}
+.explain-card-title{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:3px;}
+.explain-card-level{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;}
+.explain-card-body{padding:0 20px 18px;display:none;border-top:1px solid rgba(255,255,255,.06);}
+.explain-card-body.open{display:block;}
+.explain-card-body p{font-size:.88rem;color:#b0c0e0;line-height:1.8;margin-top:12px;}
+.explain-card-body .formula-box{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);
+  border-radius:10px;padding:12px 16px;margin:10px 0;font-family:'Space Mono',monospace;
+  font-size:.9rem;color:var(--accent);line-height:1.8;}
+.explain-card-body .example-box{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);
+  border-radius:10px;padding:12px 16px;margin:10px 0;font-size:.85rem;color:#c8a800;line-height:1.8;}
+.explain-card-body .tip-box{background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.2);
+  border-radius:10px;padding:12px 16px;margin:10px 0;font-size:.82rem;color:var(--green);line-height:1.6;}
+.explain-card-toggle{font-size:1.2rem;color:var(--dim);transition:.3s;margin-left:auto;}
+.explain-card.open .explain-card-toggle{transform:rotate(180deg);color:var(--accent);}
+
+/* ═══ GAME HEADER ═══ */
+#game,#miniGame{justify-content:flex-start;max-width:780px;margin:0 auto;width:100%;}
+.game-header{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:18px;flex-wrap:wrap;}
+.btn-back{background:var(--surface);border:1px solid rgba(255,255,255,.1);color:var(--dim);
+  padding:8px 16px;border-radius:12px;cursor:pointer;font-family:'Exo 2',sans-serif;font-size:.88rem;transition:.2s;}
+.btn-back:hover{color:var(--text);border-color:var(--text);}
+.level-badge{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+  padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;}
+.badge-primaria{background:rgba(0,229,255,.15);color:#00e5ff;border:1px solid rgba(0,229,255,.35);}
+.badge-secundaria{background:rgba(255,111,0,.15);color:#ff6f00;border:1px solid rgba(255,111,0,.35);}
+.badge-prepa{background:rgba(180,0,255,.15);color:#b400ff;border:1px solid rgba(180,0,255,.35);}
+.badge-mini{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
+.game-meta{display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:5px;background:var(--surface);
+  padding:7px 12px;border-radius:12px;font-size:.85rem;font-weight:700;border:1px solid rgba(255,255,255,.05);}
+
+/* Progress / Timer */
+.progress-wrap{width:100%;height:7px;background:var(--surface2);border-radius:10px;overflow:hidden;margin-bottom:5px;}
+.progress-bar{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.4,0,.2,1);}
+.timer-bar-wrap{width:100%;height:4px;background:var(--surface2);border-radius:10px;overflow:hidden;margin-bottom:18px;}
+.timer-bar{height:100%;background:var(--accent);transition:width .1s linear;border-radius:10px;}
+
+/* Question card */
+.question-card{width:100%;background:linear-gradient(160deg,var(--surface),var(--surface3));
+  border-radius:24px;padding:28px;
+  border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 50px rgba(0,0,0,.5);animation:slideIn .4s cubic-bezier(.4,0,.2,1);}
+.q-number{font-size:.75rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:'Space Mono',monospace;}
+.q-type-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;}
+.q-text{font-size:clamp(1.05rem,3vw,1.4rem);font-weight:700;line-height:1.6;margin-bottom:6px;}
+.q-hint{font-size:.83rem;color:var(--dim);margin-bottom:20px;font-style:italic;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+@media(max-width:480px){.options-grid{grid-template-columns:1fr;}}
+.option-btn{background:var(--surface2);border:1px solid rgba(255,255,255,.07);color:var(--text);
+  padding:14px 16px;border-radius:14px;cursor:pointer;font-family:'Exo 2',sans-serif;
+  font-size:.93rem;font-weight:600;text-align:left;transition:.2s;position:relative;overflow:hidden;}
+.option-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.02));}
+.option-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(0,229,255,.06);transform:translateX(4px);}
+.option-btn.correct{border-color:var(--green);background:rgba(0,255,136,.1);color:var(--green);}
+.option-btn.wrong{border-color:var(--red);background:rgba(255,51,102,.1);color:var(--red);}
+.input-wrap{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.answer-input{flex:1;min-width:160px;background:var(--surface2);border:1px solid rgba(255,255,255,.1);
+  color:var(--text);padding:13px 16px;border-radius:14px;font-family:'Orbitron',sans-serif;
+  font-size:1.2rem;text-align:center;outline:none;transition:.2s;}
+.answer-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.1);}
+.answer-input.correct{border-color:var(--green);}
+.answer-input.wrong{border-color:var(--red);}
+.btn-submit{padding:13px 24px;border-radius:14px;font-family:'Orbitron',sans-serif;font-size:.88rem;
+  font-weight:700;cursor:pointer;border:none;transition:.2s;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;letter-spacing:1px;}
+.btn-submit:hover{filter:brightness(1.15);transform:translateY(-2px);}
+.feedback{margin-top:16px;padding:14px 18px;border-radius:14px;font-size:.9rem;line-height:1.5;display:none;animation:slideIn .3s ease;}
+.feedback.correct{background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);color:var(--green);}
+.feedback.wrong{background:rgba(255,51,102,.07);border:1px solid rgba(255,51,102,.2);color:#ff6688;}
+.btn-next{margin-top:16px;width:100%;padding:14px;border-radius:14px;font-family:'Orbitron',sans-serif;
+  font-size:.92rem;font-weight:700;cursor:pointer;border:1px solid var(--accent);
+  background:transparent;color:var(--accent);letter-spacing:2px;transition:.2s;display:none;}
+.btn-next:hover{background:var(--accent);color:#000;}
+
+/* ═══ MINI GAME CARD ═══ */
+.mini-card-wrap{width:100%;background:linear-gradient(160deg,var(--surface),var(--surface3));
+  border-radius:24px;padding:26px;
+  border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 50px rgba(0,0,0,.5);animation:slideIn .4s ease;}
+.rule-box{padding:12px 18px;border-radius:12px;font-weight:700;font-size:.92rem;
+  text-align:center;margin-bottom:16px;border:1px solid;}
+
+/* Triangle SVG */
+.triangle-wrap{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin:12px 0;}
+.tri-svg-wrap{text-align:center;}
+.tri-svg text{font-family:'Orbitron',sans-serif;font-size:16px;fill:#e8f0ff;}
+.tri-svg text.tc{font-size:20px;fill:var(--gold);}
+.tri-svg text.tq{font-size:20px;fill:var(--accent);}
+.tri-svg polygon{fill:rgba(0,229,255,.06);stroke:var(--accent);stroke-width:2;}
+.tri-svg circle{fill:rgba(255,215,0,.1);stroke:var(--gold);stroke-width:2;}
+.tri-lbl{font-size:.7rem;color:var(--dim);margin-top:4px;font-family:'Space Mono',monospace;}
+.tri-input-row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.tri-input{background:var(--surface2);border:1px solid #333;color:#fff;padding:11px;
+  border-radius:12px;font-family:'Orbitron',sans-serif;font-size:1.3rem;width:85px;text-align:center;outline:none;transition:.2s;}
+.tri-input:focus{border-color:var(--accent);}
+.btn-check{padding:11px 22px;border-radius:12px;font-family:'Orbitron',sans-serif;font-size:.88rem;
+  font-weight:900;cursor:pointer;border:none;transition:.2s;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;}
+.btn-check:hover{filter:brightness(1.15);transform:scale(1.03);}
+
+/* Star */
+.star-container{position:relative;width:280px;height:280px;margin:10px auto;}
+.star-node{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-family:'Orbitron',sans-serif;font-size:1.1rem;
+  transform:translate(-50%,-50%);border:2px solid;transition:.2s;user-select:none;}
+.star-node.sn-fixed{background:var(--surface2);border-color:var(--accent);color:var(--accent);}
+.star-node.sn-edit{background:rgba(255,51,102,.12);border-color:var(--red);color:var(--red);
+  cursor:pointer;animation:twinkle2 2s infinite;}
+.star-node.sn-ok{background:rgba(0,255,136,.12);border-color:var(--green);color:var(--green);}
+.star-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.star-svg line{stroke:rgba(255,255,255,.1);stroke-width:1.5;}
+.star-rule{text-align:center;font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:6px;}
+.star-hint{text-align:center;font-size:.8rem;color:var(--dim);margin-bottom:8px;}
+
+/* Cross */
+.cross-examples{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:8px 0;}
+.cross-example-block{text-align:center;}
+.cross-example-lbl{font-size:.7rem;color:var(--dim);margin-bottom:6px;font-family:'Space Mono',monospace;}
+.cross-grid{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:6px;margin:0 auto;width:fit-content;}
+.cc{width:64px;height:64px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:1.3rem;}
+.cc-filled{background:var(--surface2);border:1px solid rgba(0,229,255,.3);color:var(--accent);}
+.cc-center{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.4);color:var(--gold);}
+.cc-answer{background:rgba(255,51,102,.08);border:1px dashed rgba(255,51,102,.5);color:var(--red);font-size:1rem;}
+.cc-empty{background:transparent;border:none;}
+.cross-opts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+.cross-opt{width:58px;height:58px;border-radius:12px;border:1px solid #333;background:var(--surface2);
+  color:var(--text);font-family:'Orbitron',sans-serif;font-size:1.2rem;cursor:pointer;transition:.2s;}
+.cross-opt:hover:not(:disabled){border-color:var(--accent);background:rgba(0,229,255,.08);color:var(--accent);transform:scale(1.1);}
+.cross-opt.co-correct{border-color:var(--green);background:rgba(0,255,136,.1);color:var(--green);}
+.cross-opt.co-wrong{border-color:var(--red);background:rgba(255,51,102,.08);color:var(--red);}
+
+/* Snake */
+#snakeCanvas{border-radius:14px;border:1px solid rgba(255,255,255,.08);display:block;background:#06091c;}
+.snake-q{text-align:center;font-weight:800;font-size:1.05rem;color:var(--gold);
+  background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);
+  border-radius:12px;padding:10px 16px;margin-bottom:10px;}
+.snake-controls{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:10px;}
+.snake-row{display:flex;gap:5px;}
+.dpad{width:48px;height:48px;border-radius:10px;background:var(--surface2);border:1px solid #333;
+  font-size:1.2rem;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;}
+.dpad:hover{background:#1a2a50;border-color:var(--accent);}
+.dpad:active{transform:scale(.92);}
+.snake-overlay{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;border-radius:14px;
+  background:rgba(5,10,24,.85);font-family:'Orbitron',sans-serif;z-index:10;
+  white-space:pre-line;text-align:center;}
+.snake-overlay .ov-title{font-size:1.4rem;font-weight:900;color:var(--gold);}
+.snake-overlay .ov-sub{font-size:.82rem;color:var(--dim);}
+
+/* Snake difficulty */
+.difficulty-selector{display:flex;gap:10px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.diff-btn{padding:8px 20px;border-radius:20px;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:var(--dim);font-family:'Orbitron',sans-serif;font-size:.7rem;
+  font-weight:700;cursor:pointer;transition:.2s;letter-spacing:1px;}
+.diff-btn:hover{border-color:var(--accent);color:var(--accent);}
+.diff-btn.selected{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.1);}
+.diff-btn[data-diff="facil"].selected{border-color:var(--green);color:var(--green);background:rgba(0,255,136,.1);}
+.diff-btn[data-diff="medio"].selected{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.1);}
+.diff-btn[data-diff="dificil"].selected{border-color:var(--red);color:var(--red);background:rgba(255,51,102,.1);}
+
+/* Memory game */
+.memory-grid{display:grid;gap:8px;justify-content:center;margin:12px auto;}
+.mem-card{width:72px;height:72px;border-radius:14px;cursor:pointer;position:relative;
+  transform-style:preserve-3d;transition:transform .5s;}
+.mem-card.flipped,.mem-card.matched{transform:rotateY(180deg);}
+.mem-card-face{position:absolute;inset:0;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;backface-visibility:hidden;border:1px solid;}
+.mem-card-back{background:var(--surface2);border-color:rgba(0,229,255,.25);
+  font-size:1.6rem;backface-visibility:hidden;position:absolute;inset:0;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;}
+.mem-card-front{background:rgba(0,229,255,.08);border-color:var(--accent);color:var(--accent);
+  transform:rotateY(180deg);}
+.mem-card.matched .mem-card-front{background:rgba(0,255,136,.12);border-color:var(--green);color:var(--green);}
+.mem-info{text-align:center;font-size:.85rem;color:var(--dim);margin-top:10px;font-family:'Space Mono',monospace;}
+
+/* Sequence game */
+.seq-display{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:700;
+  color:var(--accent);text-align:center;background:rgba(0,229,255,.05);
+  border:1px solid rgba(0,229,255,.2);border-radius:14px;padding:16px 20px;margin:12px 0;letter-spacing:2px;}
+.seq-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.seq-opt{background:var(--surface2);border:1px solid rgba(255,255,255,.08);color:var(--text);
+  padding:14px;border-radius:14px;font-family:'Orbitron',sans-serif;font-size:1.2rem;
+  cursor:pointer;transition:.2s;text-align:center;}
+.seq-opt:hover:not(:disabled){border-color:var(--accent);background:rgba(0,229,255,.08);color:var(--accent);}
+.seq-opt.correct{border-color:var(--green);background:rgba(0,255,136,.1);color:var(--green);}
+.seq-opt.wrong{border-color:var(--red);background:rgba(255,51,102,.1);color:var(--red);}
+
+/* Analogy */
+.analogy-pairs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0;}
+.ap-pair{display:flex;align-items:center;gap:6px;}
+.ap-box{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:1.1rem;border:1px solid;}
+.ap-given{background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.35);color:var(--accent);}
+.ap-arrow{font-size:1.3rem;color:var(--dim);}
+.ap-result{background:rgba(180,0,255,.08);border-color:rgba(180,0,255,.35);color:var(--prepa);}
+.ap-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+.ap-opt{background:var(--surface2);border:1px solid rgba(255,255,255,.08);color:var(--text);
+  padding:14px;border-radius:14px;font-family:'Orbitron',sans-serif;font-size:1.2rem;
+  cursor:pointer;transition:.2s;text-align:center;}
+.ap-opt:hover:not(:disabled){border-color:var(--prepa);background:rgba(180,0,255,.08);color:var(--prepa);}
+.ap-opt.correct{border-color:var(--green);background:rgba(0,255,136,.1);color:var(--green);}
+.ap-opt.wrong{border-color:var(--red);background:rgba(255,51,102,.1);color:var(--red);}
+
+/* ═══ RESULTS ═══ */
+#results{justify-content:center;padding-top:40px;}
+.results-card{background:linear-gradient(160deg,var(--surface),var(--surface3));
+  border-radius:28px;padding:36px 30px;max-width:500px;width:100%;
+  text-align:center;box-shadow:0 12px 70px rgba(0,0,0,.6);animation:slideIn .5s ease;
+  border:1px solid rgba(255,255,255,.07);}
+.result-emoji{font-size:4rem;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(255,215,0,.4));}
+.result-title{font-family:'Orbitron',sans-serif;font-size:1.7rem;font-weight:900;margin-bottom:6px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.result-sub{color:var(--dim);margin-bottom:20px;}
+.score-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;position:relative;}
+.score-ring::before{content:'';position:absolute;inset:-4px;border-radius:50%;
+  background:conic-gradient(var(--accent) var(--pct,0%),var(--surface2) 0%);z-index:-1;}
+.score-ring::after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--surface);z-index:-1;}
+.stats-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
+.stat-box{background:var(--surface2);border-radius:14px;padding:12px 18px;min-width:85px;border:1px solid rgba(255,255,255,.05);}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;}
+.stat-lbl{font-size:.68rem;color:var(--dim);margin-top:2px;text-transform:uppercase;letter-spacing:1px;font-family:'Space Mono',monospace;}
+.new-record-banner{background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,165,0,.08));
+  border:1px solid rgba(255,215,0,.4);border-radius:14px;padding:12px 20px;margin-bottom:16px;
+  font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--gold);
+  animation:recordPulse 1.5s ease-out;display:none;}
+.btn-play-again{width:100%;padding:14px;border-radius:14px;font-family:'Orbitron',sans-serif;
+  font-size:.92rem;font-weight:700;cursor:pointer;border:none;transition:.2s;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;letter-spacing:1px;margin-bottom:10px;}
+.btn-play-again:hover{filter:brightness(1.12);transform:translateY(-2px);}
+.btn-menu-r{width:100%;padding:13px;border-radius:14px;font-family:'Orbitron',sans-serif;
+  font-size:.88rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:var(--dim);transition:.2s;}
+.btn-menu-r:hover{border-color:var(--text);color:var(--text);}
+
+/* Particle */
+.particle{position:fixed;pointer-events:none;z-index:9999;font-size:1.4rem;animation:floatUp .9s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(1.6)}}
+
+/* Footer author */
+.home-footer{text-align:center;padding:16px 0 8px;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--dim);letter-spacing:1px;}
+.home-footer span{color:var(--accent);}
+
+/* Responsive */
+@media(max-width:600px){
+  .mini-cards{gap:8px;}
+  .mini-card{flex:1 1 130px;}
+  .cross-grid{grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);}
+  .cc{width:52px;height:52px;font-size:1.1rem;}
+  #snakeCanvas{width:270px!important;height:270px!important;}
+  .tab-btn{font-size:.55rem;padding:7px 6px;}
+}
+</style>
+</head>
+<body>
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div id="stars"></div>
+<div id="app">
+
+<!-- ═══════════ HOME ═══════════ -->
+<div id="home" class="screen active">
+  <div class="logo">
+    <div class="planet-icon">🚀</div>
+    <h1>MathQuest</h1>
+    <div class="logo-sub">EL UNIVERSO DE LAS MATEMÁTICAS</div>
+    <div class="author-badge">
+      <span class="ab-dot"></span>
+      por <strong>Profe Alex</strong> &nbsp;·&nbsp; Tu guía matemático
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabLevels" onclick="switchTab('levels')">📚 Niveles</button>
+    <button class="tab-btn" id="tabMini" onclick="switchTab('mini')">🎮 Minijuegos</button>
+    <button class="tab-btn" id="tabExplain" onclick="switchTab('explain')">🧠 Explicaciones</button>
+    <button class="tab-btn" id="tabRecords" onclick="switchTab('records')">🏆 Récords</button>
+  </div>
+
+  <!-- LEVELS TAB -->
+  <div id="tabContentLevels" class="level-cards">
+    <div class="level-card" data-level="primaria" onclick="startLevel('primaria')">
+      <div class="card-icon">🌱</div>
+      <div class="card-title">Primaria</div>
+      <div class="card-desc">Sumas, restas, multiplicaciones y fracciones.</div>
+      <div class="card-topics">
+        <span class="topic-tag">+−×÷</span><span class="topic-tag">Fracciones</span>
+        <span class="topic-tag">Acertijos</span><span class="topic-tag">Geometría</span>
+      </div>
+      <div class="card-record" id="rec-q-primaria">🏆 Récord: —</div>
+    </div>
+    <div class="level-card" data-level="secundaria" onclick="startLevel('secundaria')">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Secundaria</div>
+      <div class="card-desc">Álgebra, ecuaciones y potencias.</div>
+      <div class="card-topics">
+        <span class="topic-tag">Álgebra</span><span class="topic-tag">Ecuaciones</span>
+        <span class="topic-tag">Potencias</span><span class="topic-tag">Porcentajes</span>
+      </div>
+      <div class="card-record" id="rec-q-secundaria">🏆 Récord: —</div>
+    </div>
+    <div class="level-card" data-level="prepa" onclick="startLevel('prepa')">
+      <div class="card-icon">🔭</div>
+      <div class="card-title">Prepa</div>
+      <div class="card-desc">Funciones, trigonometría y probabilidad.</div>
+      <div class="card-topics">
+        <span class="topic-tag">Funciones</span><span class="topic-tag">Trigono.</span>
+        <span class="topic-tag">Logaritmos</span><span class="topic-tag">Prob.</span>
+      </div>
+      <div class="card-record" id="rec-q-prepa">🏆 Récord: —</div>
+    </div>
+  </div>
+
+  <!-- MINIGAMES TAB -->
+  <div id="tabContentMini" class="mini-cards" style="display:none">
+    <div class="mini-card" style="--mc1:#00e5ff;--mc2:#0077ff;border-color:rgba(0,229,255,.35)" onclick="startMini('triangle')">
+      <span class="m-icon">🔺</span>
+      <div class="m-title" style="color:#00e5ff">Triángulos</div>
+      <div class="m-desc">Descubre el número X en triángulos mágicos con patrones</div>
+      <div class="m-record" id="rec-m-triangle">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#ffd700;--mc2:#ff8c00;border-color:rgba(255,215,0,.35)" onclick="startMini('star')">
+      <span class="m-icon">⭐</span>
+      <div class="m-title" style="color:#ffd700">Estrellas</div>
+      <div class="m-desc">Coloca números para que los pares opuestos sumen igual</div>
+      <div class="m-record" id="rec-m-star">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#00ff88;--mc2:#00bb66;border-color:rgba(0,255,136,.35)" onclick="startMini('cross')">
+      <span class="m-icon">✚</span>
+      <div class="m-title" style="color:#00ff88">Cruces</div>
+      <div class="m-desc">Encuentra la regla oculta de la cruz y calcula X</div>
+      <div class="m-record" id="rec-m-cross">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#4d96ff;--mc2:#c77dff;border-color:rgba(77,150,255,.35)" onclick="startMini('snake')">
+      <span class="m-icon">🐍</span>
+      <div class="m-title" style="color:#4d96ff">Serpiente</div>
+      <div class="m-desc">¡Come solo el número correcto antes de que sea tarde!</div>
+      <div class="m-record" id="rec-m-snake">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#b400ff;--mc2:#6600ff;border-color:rgba(180,0,255,.35)" onclick="startMini('analogy')">
+      <span class="m-icon">🔗</span>
+      <div class="m-title" style="color:#b400ff">Analogías</div>
+      <div class="m-desc">Descubre el patrón: si 2→4 y 3→9, ¿qué es 5→?</div>
+      <div class="m-record" id="rec-m-analogy">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#ff6f00;--mc2:#ff0055;border-color:rgba(255,111,0,.35)" onclick="startMini('memory')">
+      <span class="m-icon">🃏</span>
+      <div class="m-title" style="color:#ff6f00">Memoria</div>
+      <div class="m-desc">Empareja las operaciones con sus resultados</div>
+      <div class="m-record" id="rec-m-memory">🏆 —</div>
+    </div>
+    <div class="mini-card" style="--mc1:#00ff88;--mc2:#00aaff;border-color:rgba(0,255,136,.35)" onclick="startMini('sequence')">
+      <span class="m-icon">🔢</span>
+      <div class="m-title" style="color:#00ff88">Secuencias</div>
+      <div class="m-desc">Completa la serie numérica encontrando el patrón</div>
+      <div class="m-record" id="rec-m-sequence">🏆 —</div>
+    </div>
+  </div>
+
+  <!-- EXPLANATIONS TAB -->
+  <div id="tabContentExplain" class="explain-panel" style="display:none">
+    <input class="explain-search" type="text" placeholder="🔍 Buscar tema... ej: fracciones, ecuaciones..." id="explainSearch" oninput="filterExplain()">
+    <div class="explain-topic-filters">
+      <button class="etf-btn active" onclick="setExplainFilter('todos',this)">Todos</button>
+      <button class="etf-btn" onclick="setExplainFilter('primaria',this)">🌱 Primaria</button>
+      <button class="etf-btn" onclick="setExplainFilter('secundaria',this)">⚡ Secundaria</button>
+      <button class="etf-btn" onclick="setExplainFilter('prepa',this)">🔭 Prepa</button>
+      <button class="etf-btn" onclick="setExplainFilter('juegos',this)">🎮 Juegos</button>
+    </div>
+    <div class="explain-cards" id="explainCards"></div>
+  </div>
+
+  <!-- RECORDS TAB -->
+  <div id="tabContentRecords" class="records-panel" style="display:none">
+    <div class="rec-section">
+      <div class="rec-section-title">📚 Preguntas por Nivel</div>
+      <div class="rec-grid" id="recordsLevelsGrid"></div>
+    </div>
+    <div class="rec-section">
+      <div class="rec-section-title">🎮 Minijuegos</div>
+      <div class="rec-grid" id="recordsMiniGrid"></div>
+    </div>
+  </div>
+
+  <div class="home-footer">Creado con ❤️ por <span>Profe Alex</span> · MathQuest v2.0</div>
+</div>
+
+<!-- ═══════════ QUESTIONS GAME ═══════════ -->
+<div id="game" class="screen">
+  <div class="game-header">
+    <button class="btn-back" onclick="goHome()">← Menú</button>
+    <span class="level-badge" id="levelBadge"></span>
+    <div class="game-meta">
+      <div class="meta-item">⭐ <span id="scoreDisplay">0</span></div>
+      <div class="meta-item" id="livesItem">❤️ <span id="livesDisplay">3</span></div>
+      <div class="meta-item">📋 <span id="qIndexDisplay">1/10</span></div>
+    </div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar"></div></div>
+  <div class="question-card" id="questionCard"></div>
+</div>
+
+<!-- ═══════════ MINI GAME SCREEN ═══════════ -->
+<div id="miniGame" class="screen">
+  <div class="game-header">
+    <button class="btn-back" onclick="goHome()">← Menú</button>
+    <span class="level-badge badge-mini" id="miniTitle"></span>
+    <div class="game-meta">
+      <div class="meta-item">⭐ <span id="miniScore">0</span></div>
+      <div class="meta-item">📋 <span id="miniProgress">0/0</span></div>
+    </div>
+  </div>
+  <div class="mini-card-wrap" id="miniCardWrap"></div>
+</div>
+
+<!-- ═══════════ RESULTS ═══════════ -->
+<div id="results" class="screen">
+  <div class="results-card">
+    <div class="result-emoji" id="resultEmoji">🏆</div>
+    <div class="result-title" id="resultTitle">¡Excelente!</div>
+    <div class="result-sub" id="resultSub"></div>
+    <div class="new-record-banner" id="newRecordBanner">🏆 ¡NUEVO RÉCORD! 🏆</div>
+    <div class="score-ring" id="scoreRing" style="--pct:0%"><span id="scorePercent">0%</span></div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="statCorrect" style="color:var(--green)">0</div><div class="stat-lbl">Correctas</div></div>
+      <div class="stat-box"><div class="stat-val" id="statWrong" style="color:var(--red)">0</div><div class="stat-lbl">Errores</div></div>
+      <div class="stat-box"><div class="stat-val" id="statScore" style="color:var(--gold)">0</div><div class="stat-lbl">Puntos</div></div>
+    </div>
+    <button class="btn-play-again" id="btnPlayAgain">🔄 JUGAR DE NUEVO</button>
+    <button class="btn-menu-r" onclick="goHome()">🏠 MENÚ PRINCIPAL</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+<script>
+// ═══════════════════════════════════════════════
+// STARS BACKGROUND
+// ═══════════════════════════════════════════════
+const starsEl=document.getElementById('stars');
+for(let i=0;i<140;i++){
+  const s=document.createElement('div');s.className='star';
+  const sz=Math.random()*2.2+.4;
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*5}s;animation-delay:${Math.random()*5}s`;
+  starsEl.appendChild(s);
+}
+
+// ═══════════════════════════════════════════════
+// RECORDS SYSTEM
+// ═══════════════════════════════════════════════
+const RECORD_KEYS = {
+  'q-primaria':'rec_q_primaria','q-secundaria':'rec_q_secundaria','q-prepa':'rec_q_prepa',
+  'm-triangle':'rec_m_triangle','m-star':'rec_m_star','m-cross':'rec_m_cross',
+  'm-snake':'rec_m_snake','m-analogy':'rec_m_analogy','m-memory':'rec_m_memory','m-sequence':'rec_m_sequence'
+};
+function getRecord(key){try{const v=sessionStorage.getItem(RECORD_KEYS[key]);return v?JSON.parse(v):null;}catch(e){return null;}}
+function setRecord(key,data){try{sessionStorage.setItem(RECORD_KEYS[key],JSON.stringify(data));}catch(e){}}
+function checkAndSaveRecord(key,score,extra={}){
+  const cur=getRecord(key);
+  if(!cur||score>cur.score){setRecord(key,{score,...extra});return true;}
+  return false;
+}
+
+function updateHomeRecords(){
+  ['primaria','secundaria','prepa'].forEach(lv=>{
+    const rec=getRecord('q-'+lv);
+    document.getElementById('rec-q-'+lv).textContent='🏆 Récord: '+(rec?rec.score.toLocaleString()+' pts':'—');
+  });
+  ['triangle','star','cross','snake','analogy','memory','sequence'].forEach(m=>{
+    const el=document.getElementById('rec-m-'+m);
+    if(!el)return;
+    const rec=getRecord('m-'+m);
+    el.textContent='🏆 '+(rec?rec.score.toLocaleString()+' pts':'—');
+  });
+}
+
+function renderRecordsTab(){
+  const LEVEL_INFO={primaria:{icon:'🌱',label:'Primaria'},secundaria:{icon:'⚡',label:'Secundaria'},prepa:{icon:'🔭',label:'Prepa'}};
+  const MINI_INFO={triangle:{icon:'🔺',label:'Triángulos'},star:{icon:'⭐',label:'Estrellas'},
+    cross:{icon:'✚',label:'Cruces'},snake:{icon:'🐍',label:'Serpiente'},analogy:{icon:'🔗',label:'Analogías'},
+    memory:{icon:'🃏',label:'Memoria'},sequence:{icon:'🔢',label:'Secuencias'}};
+  const lGrid=document.getElementById('recordsLevelsGrid');
+  const mGrid=document.getElementById('recordsMiniGrid');
+  lGrid.innerHTML='';mGrid.innerHTML='';
+  Object.entries(LEVEL_INFO).forEach(([k,v])=>{
+    const rec=getRecord('q-'+k);
+    lGrid.innerHTML+=`<div class="rec-card">
+      <div class="rec-card-name">${v.icon} ${v.label}</div>
+      <div class="rec-card-score">${rec?rec.score.toLocaleString():'—'}</div>
+      <div class="rec-card-detail">${rec?rec.pct+'% correcto · '+rec.correct+'/10':''}</div>
+      <div class="rec-card-icon">${v.icon}</div>
+    </div>`;
+  });
+  Object.entries(MINI_INFO).forEach(([k,v])=>{
+    const rec=getRecord('m-'+k);
+    mGrid.innerHTML+=`<div class="rec-card">
+      <div class="rec-card-name">${v.icon} ${v.label}</div>
+      <div class="rec-card-score">${rec?rec.score.toLocaleString():'—'}</div>
+      <div class="rec-card-detail">${rec&&rec.correct!==undefined?rec.correct+' correctas':''}</div>
+      <div class="rec-card-icon">${v.icon}</div>
+    </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// EXPLANATIONS DATA
+// ═══════════════════════════════════════════════
+const EXPLANATIONS=[
+  {icon:'➕',title:'Suma y Resta',level:'primaria',levelColor:'#00e5ff',
+   body:`<p>La <strong>suma</strong> une cantidades y la <strong>resta</strong> las separa. Son las operaciones más fundamentales de la aritmética.</p>
+   <div class="formula-box">a + b = total<br>total − b = a</div>
+   <div class="example-box">📘 Ejemplo: Tienes 47 manzanas y compras 38 más.<br>47 + 38 = 85 manzanas en total.</div>
+   <div class="tip-box">💡 Consejo del Profe Alex: Suma primero las decenas y luego las unidades para ir más rápido.</div>`},
+  {icon:'✖️',title:'Multiplicación y División',level:'primaria',levelColor:'#00e5ff',
+   body:`<p>La <strong>multiplicación</strong> es una suma repetida. La <strong>división</strong> es el proceso inverso: repartir en partes iguales.</p>
+   <div class="formula-box">a × b = b + b + ... (a veces)<br>a ÷ b = ¿cuántas veces cabe b en a?</div>
+   <div class="example-box">📘 Ejemplo: 8 × 9 = 72 (ocho grupos de nueve)<br>84 ÷ 7 = 12 (84 repartido en 7 grupos iguales)</div>
+   <div class="tip-box">💡 Profe Alex dice: Aprende las tablas de multiplicar del 1 al 12 y todo se volverá más fácil.</div>`},
+  {icon:'🍕',title:'Fracciones',level:'primaria',levelColor:'#00e5ff',
+   body:`<p>Una <strong>fracción</strong> representa una parte de un todo. El número de abajo (denominador) dice en cuántas partes se divide; el de arriba (numerador) dice cuántas partes tomamos.</p>
+   <div class="formula-box">numerador / denominador<br>Para comparar: convierte a decimales</div>
+   <div class="example-box">📘 Ejemplo: 1/2 = 0.5, 2/5 = 0.4, 3/8 = 0.375<br>Entonces 1/2 > 2/5 > 3/8</div>
+   <div class="tip-box">💡 Truco: Para sumar fracciones, iguala los denominadores primero.</div>`},
+  {icon:'🔷',title:'Geometría Básica',level:'primaria',levelColor:'#00e5ff',
+   body:`<p>La geometría estudia las formas y sus medidas. Las fórmulas de área más importantes:</p>
+   <div class="formula-box">Rectángulo: Área = largo × ancho<br>Triángulo: Área = (base × altura) ÷ 2<br>Círculo: Área = π × r²</div>
+   <div class="example-box">📘 Ejemplo: Rectángulo 8×5 cm → Área = 40 cm²<br>Triángulo base 10, altura 8 → Área = 40 cm²</div>
+   <div class="tip-box">💡 Recuerda: el área siempre se mide en unidades cuadradas (cm², m², etc.)</div>`},
+  {icon:'🔣',title:'Álgebra — Ecuaciones',level:'secundaria',levelColor:'#ff6f00',
+   body:`<p>Una <strong>ecuación</strong> es una igualdad con incógnitas. Para resolverla, aplica las mismas operaciones a ambos lados.</p>
+   <div class="formula-box">3x + 7 = 22<br>→ 3x = 22 − 7 = 15<br>→ x = 15 ÷ 3 = 5</div>
+   <div class="example-box">📘 Regla de oro: Lo que hagas a un lado de la = lo debes hacer al otro.</div>
+   <div class="tip-box">💡 Profe Alex recomienda: Verifica tu respuesta sustituyendo x en la ecuación original.</div>`},
+  {icon:'⚡',title:'Potencias y Raíces',level:'secundaria',levelColor:'#ff6f00',
+   body:`<p>Una <strong>potencia</strong> es una multiplicación repetida. La <strong>raíz</strong> es su operación inversa.</p>
+   <div class="formula-box">aⁿ = a × a × ... (n veces)<br>√a = número que al cuadrado da a<br>2⁸ = 256 | √169 = 13</div>
+   <div class="example-box">📘 Potencias importantes: 2⁸=256, 3⁴=81, 5³=125<br>Raíces: √4=2, √9=3, √25=5, √144=12</div>
+   <div class="tip-box">💡 (−n)² siempre es positivo; (−n)³ siempre es negativo.</div>`},
+  {icon:'📊',title:'Porcentajes y Proporciones',level:'secundaria',levelColor:'#ff6f00',
+   body:`<p>El <strong>porcentaje</strong> expresa una parte de 100. Las <strong>proporciones</strong> relacionan dos razones iguales.</p>
+   <div class="formula-box">% de X = (% ÷ 100) × X<br>Descuento = precio − (precio × %/100)<br>a/b = c/d → a×d = b×c</div>
+   <div class="example-box">📘 30% de $250 = 0.30 × 250 = $75<br>Precio final = $250 − $75 = $175</div>
+   <div class="tip-box">💡 Para calcular porcentajes mentalmente: 10% es fácil (mueve la coma), luego combina.</div>`},
+  {icon:'📐',title:'Factorización',level:'secundaria',levelColor:'#ff6f00',
+   body:`<p>Factorizar es expresar una expresión algebraica como producto de factores más simples.</p>
+   <div class="formula-box">Diferencia de cuadrados: a²−b² = (a+b)(a−b)<br>Trinomio: x²+bx+c = (x+p)(x+q)<br>donde p×q=c y p+q=b</div>
+   <div class="example-box">📘 x²−9 = x²−3² = (x+3)(x−3)<br>x²−5x+6 = (x−2)(x−3) porque −2×−3=6 y −2+(−3)=−5</div>
+   <div class="tip-box">💡 Siempre busca primero el factor común antes de aplicar otras fórmulas.</div>`},
+  {icon:'📈',title:'Funciones',level:'prepa',levelColor:'#b400ff',
+   body:`<p>Una <strong>función</strong> f(x) asigna exactamente un valor de salida por cada valor de entrada. El dominio son los valores permitidos para x.</p>
+   <div class="formula-box">f(x) = x² + 1 | g(x) = 2x<br>Composición: f(g(x)) = f(2x) = (2x)²+1<br>Dominio √(x−4): necesitas x−4≥0 → x≥4</div>
+   <div class="example-box">📘 Si g(3)=6, entonces f(g(3))=f(6)=6²+1=37</div>
+   <div class="tip-box">💡 Para encontrar el dominio de una raíz cuadrada, el radicando debe ser ≥ 0.</div>`},
+  {icon:'📐',title:'Trigonometría',level:'prepa',levelColor:'#b400ff',
+   body:`<p>La trigonometría estudia las relaciones entre ángulos y lados de triángulos rectángulos.</p>
+   <div class="formula-box">sen(θ) = opuesto/hipotenusa<br>cos(θ) = adyacente/hipotenusa<br>tan(θ) = opuesto/adyacente<br>Pitágoras: a² + b² = c²</div>
+   <div class="example-box">📘 Ángulos especiales:<br>sen(30°)=1/2 | cos(60°)=1/2 | sen(45°)=√2/2<br>Si hipotenusa=13 y cateto=5: b²=169−25=144 → b=12</div>
+   <div class="tip-box">💡 Memoriza SOH-CAH-TOA para recordar las razones trigonométricas.</div>`},
+  {icon:'🔬',title:'Logaritmos',level:'prepa',levelColor:'#b400ff',
+   body:`<p>El <strong>logaritmo</strong> pregunta: ¿a qué potencia hay que elevar la base para obtener ese número?</p>
+   <div class="formula-box">logₐ(b) = c  ←→  aᶜ = b<br>log₂(64) = 6 porque 2⁶ = 64<br>ln(eˣ) = x (logaritmo natural)</div>
+   <div class="example-box">📘 log₁₀(1000) = 3 porque 10³ = 1000<br>ln(e⁵) = 5 (e y ln son funciones inversas)</div>
+   <div class="tip-box">💡 Propiedades: log(a×b)=log(a)+log(b) | log(aⁿ)=n·log(a)</div>`},
+  {icon:'🎲',title:'Probabilidad',level:'prepa',levelColor:'#b400ff',
+   body:`<p>La <strong>probabilidad</strong> mide la posibilidad de que ocurra un evento, del 0 (imposible) al 1 (seguro).</p>
+   <div class="formula-box">P(evento) = casos favorables / casos totales<br>P(A y B) = P(A) × P(B) [independientes]<br>P(A o B) = P(A) + P(B) − P(A y B)</div>
+   <div class="example-box">📘 Baraja de 52 cartas: P(As) = 4/52 = 1/13<br>P(rojo) = 26/52 = 1/2</div>
+   <div class="tip-box">💡 La suma de todas las probabilidades posibles siempre es igual a 1.</div>`},
+  {icon:'🐍',title:'Juego: Serpiente Numérica',level:'juegos',levelColor:'#4d96ff',
+   body:`<p>En la <strong>Serpiente Numérica</strong>, tu víbora debe comer únicamente el número que responda correctamente la pregunta mostrada en pantalla.</p>
+   <div class="formula-box">✅ Come el número CORRECTO → crece y suma puntos<br>❌ Come un número INCORRECTO → pierdes una vida<br>💥 Chocas con las paredes o contigo mismo → vida perdida</div>
+   <div class="example-box">📘 Pregunta: ¿Cuánto es 7×8?<br>Aparecen: 48, 54, 56, 63<br>Debes comer: 56 ✓</div>
+   <div class="tip-box">💡 Selecciona la dificultad antes de empezar: Fácil (lento), Medio, Difícil (más rápido). ¡Planifica tu ruta antes de que sea tarde!</div>`},
+  {icon:'🔺',title:'Juego: Triángulos Mágicos',level:'juegos',levelColor:'#00e5ff',
+   body:`<p>Cada triángulo tiene una <strong>regla oculta</strong> que relaciona las esquinas con el centro. Debes descubrirla y aplicarla.</p>
+   <div class="formula-box">Analiza los ejemplos → identifica la operación<br>Aplica la misma regla al triángulo pregunta</div>
+   <div class="example-box">📘 Regla: centro = suma de las tres esquinas<br>Ejemplo: esquinas 3, 9, 6 → centro = 18<br>Pregunta: esquinas 4, 12, 8 → centro = ?<br>Respuesta: 4+12+8 = 24 ✓</div>
+   <div class="tip-box">💡 Prueba las operaciones +, ×, −, ÷ entre las esquinas hasta encontrar la que produce el centro de los ejemplos.</div>`},
+  {icon:'🔗',title:'Juego: Analogías',level:'juegos',levelColor:'#b400ff',
+   body:`<p>Las <strong>analogías</strong> presentan pares de números que siguen una regla matemática. Debes identificar el patrón y encontrar el valor faltante.</p>
+   <div class="formula-box">Observa varios pares → halla la función f<br>Si 2→4, 3→9, 5→25 entonces f(x)=x²<br>Aplica: si x=6 → f(6)=36</div>
+   <div class="example-box">📘 Pares: (1,3), (2,6), (4,12) → f(x)=x×3<br>Pregunta: ¿qué es f(8)? → 8×3 = 24 ✓</div>
+   <div class="tip-box">💡 Prueba las reglas más comunes: ×2, ×3, +n, x², x³, √x, x−n</div>`},
+];
+
+let explainFilter='todos';
+function renderExplain(){
+  const search=document.getElementById('explainSearch').value.toLowerCase();
+  const cards=EXPLANATIONS.filter(e=>{
+    const matchFilter=explainFilter==='todos'||e.level===explainFilter;
+    const matchSearch=!search||e.title.toLowerCase().includes(search)||e.body.toLowerCase().includes(search);
+    return matchFilter&&matchSearch;
+  });
+  const container=document.getElementById('explainCards');
+  container.innerHTML=cards.length?'':'<div style="text-align:center;color:var(--dim);padding:30px">No se encontraron temas.</div>';
+  cards.forEach((e,i)=>{
+    const card=document.createElement('div');card.className='explain-card';
+    const levelLabel={primaria:'🌱 Primaria',secundaria:'⚡ Secundaria',prepa:'🔭 Prepa',juegos:'🎮 Juegos'}[e.level];
+    card.innerHTML=`
+      <div class="explain-card-header" onclick="toggleExplain(this.parentElement)">
+        <div class="explain-card-icon">${e.icon}</div>
+        <div class="explain-card-meta">
+          <div class="explain-card-title">${e.title}</div>
+          <span class="explain-card-level" style="background:${e.levelColor}22;color:${e.levelColor};border:1px solid ${e.levelColor}44">${levelLabel}</span>
+        </div>
+        <div class="explain-card-toggle">▼</div>
+      </div>
+      <div class="explain-card-body">${e.body}</div>`;
+    container.appendChild(card);
+  });
+}
+function toggleExplain(card){
+  card.classList.toggle('open');
+  card.querySelector('.explain-card-body').classList.toggle('open');
+}
+function setExplainFilter(filter,btn){
+  explainFilter=filter;
+  document.querySelectorAll('.etf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExplain();
+}
+function filterExplain(){renderExplain();}
+
+// ═══════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════
+function switchTab(tab){
+  ['levels','mini','explain','records'].forEach(t=>{
+    const el=document.getElementById('tabContent'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el)el.style.display='none';
+    const btn=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.remove('active');
+  });
+  const content=document.getElementById('tabContent'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(content)content.style.display=tab==='mini'?'flex':'block';
+  if(tab==='levels'){document.getElementById('tabContentLevels').style.display='flex';}
+  const tabBtn=document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(tabBtn)tabBtn.classList.add('active');
+  if(tab==='records')renderRecordsTab();
+  if(tab==='explain')renderExplain();
+  updateHomeRecords();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){
+  clearInterval(timerInterval);stopSnake();
+  showScreen('home');
+  setAccent('primaria');
+  updateHomeRecords();
+}
+function spawnParticle(e){
+  const p=document.createElement('div');p.className='particle';p.textContent=e;
+  p.style.left=(25+Math.random()*50)+'%';p.style.top='50%';
+  document.body.appendChild(p);setTimeout(()=>p.remove(),950);
+}
+
+// ═══════════════════════════════════════════════
+// LEVEL COLORS
+// ═══════════════════════════════════════════════
+const LEVEL_COLORS={
+  primaria:{accent:'#00e5ff',accent2:'#0077ff'},
+  secundaria:{accent:'#ff6f00',accent2:'#ff0066'},
+  prepa:{accent:'#b400ff',accent2:'#6600ff'}
+};
+function setAccent(lv){
+  const c=LEVEL_COLORS[lv]||{accent:'#00e5ff',accent2:'#0077ff'};
+  document.documentElement.style.setProperty('--accent',c.accent);
+  document.documentElement.style.setProperty('--accent2',c.accent2);
+}
+
+// ═══════════════════════════════════════════════
+// QUESTION BANKS
+// ═══════════════════════════════════════════════
+const BANKS={
+  primaria:[
+    {type:'multiple',topic:'Suma',q:'¿Cuánto es 47 + 38?',opts:['75','85','84','95'],ans:1,hint:'Suma decenas y unidades.',exp:'47+38=85'},
+    {type:'multiple',topic:'Resta',q:'Un vendedor tenía 120 naranjas y vendió 67. ¿Cuántas le quedan?',opts:['43','53','63','57'],ans:1,hint:'Resta lo vendido.',exp:'120−67=53'},
+    {type:'input',topic:'Multiplicación',q:'¿Cuánto es 8 × 9?',ans:'72',hint:'Tabla del 8.',exp:'8×9=72'},
+    {type:'multiple',topic:'División',q:'¿Cuánto es 84 ÷ 7?',opts:['11','12','13','14'],ans:1,hint:'¿Cuántas veces cabe el 7?',exp:'84÷7=12'},
+    {type:'multiple',topic:'Fracciones',q:'¿Cuál fracción es mayor?',opts:['1/3','2/5','1/2','3/8'],ans:2,hint:'Convierte a decimales.',exp:'1/2=0.5 es la mayor'},
+    {type:'input',topic:'Geometría',q:'Rectángulo de 8×5 cm. ¿Cuál es su área?',ans:'40',hint:'Área=largo×ancho.',exp:'8×5=40 cm²'},
+    {type:'multiple',topic:'Acertijo',q:'Tengo el doble de años que mi hermano. Juntos tenemos 18. ¿Cuántos años tengo yo?',opts:['6','9','12','10'],ans:2,hint:'X+2X=18',exp:'X=6, yo tengo 12'},
+    {type:'multiple',topic:'Secuencia',q:'¿Qué número sigue? 2, 4, 8, 16, ___',opts:['18','24','32','20'],ans:2,hint:'¿Qué operación hay entre cada par?',exp:'×2 cada vez → 32'},
+    {type:'input',topic:'Suma',q:'¿Cuánto es 256 + 384?',ans:'640',hint:'Suma por columnas.',exp:'256+384=640'},
+    {type:'multiple',topic:'Acertijo',q:'Si 5 gatos cazan 5 ratones en 5 min, ¿cuántos gatos para 100 ratones en 100 min?',opts:['100','20','5','50'],ans:2,hint:'Cada gato caza 1 ratón/5 min.',exp:'5 gatos = 100 ratones en 100 min'},
+  ],
+  secundaria:[
+    {type:'multiple',topic:'Álgebra',q:'Si 3x + 7 = 22, ¿cuánto vale x?',opts:['3','4','5','6'],ans:2,hint:'Despeja x.',exp:'3x=15 → x=5'},
+    {type:'input',topic:'Potencias',q:'¿Cuánto es 2⁸?',ans:'256',hint:'Multiplica 2 ocho veces.',exp:'2⁸=256'},
+    {type:'multiple',topic:'Ecuación',q:'¿Cuál es la solución de 2x − 3 = x + 5?',opts:['x=7','x=8','x=6','x=9'],ans:1,hint:'Pasa términos al mismo lado.',exp:'x=8'},
+    {type:'multiple',topic:'Porcentaje',q:'Camiseta de $250 con 30% descuento. ¿Cuánto pagas?',opts:['$175','$150','$185','$200'],ans:0,hint:'30% de 250 = 75.',exp:'250−75=$175'},
+    {type:'multiple',topic:'Factorización',q:'¿Cuál es la forma factorizada de x² − 9?',opts:['(x−3)(x+3)','(x−9)(x+1)','(x−3)²','(x+9)(x−1)'],ans:0,hint:'Diferencia de cuadrados.',exp:'x²−3²=(x−3)(x+3)'},
+    {type:'input',topic:'Álgebra',q:'Si el perímetro de un cuadrado es 52 cm, ¿cuánto mide cada lado?',ans:'13',hint:'P=4×lado.',exp:'52÷4=13'},
+    {type:'multiple',topic:'Acertijo',q:'Tren de 200 m a 60 km/h cruza puente de 400 m. ¿Cuántos segundos tarda?',opts:['24 s','36 s','30 s','20 s'],ans:1,hint:'Distancia total=tren+puente.',exp:'600m ÷ 16.67m/s ≈ 36 s'},
+    {type:'multiple',topic:'Razones',q:'Proporción agua:jugo = 3:2. Con 15 L de agua, ¿cuántos L de jugo?',opts:['8','10','12','6'],ans:1,hint:'3/2 = 15/x',exp:'x=10 litros'},
+    {type:'multiple',topic:'Geometría',q:'Triángulo base 10 cm y altura 8 cm. ¿Cuál es su área?',opts:['80 cm²','40 cm²','45 cm²','20 cm²'],ans:1,hint:'A=(base×altura)÷2',exp:'(10×8)/2=40 cm²'},
+    {type:'input',topic:'Álgebra',q:'¿Cuánto es (−4)³?',ans:'-64',hint:'Negativo × negativo × negativo.',exp:'(-4)³=−64'},
+  ],
+  prepa:[
+    {type:'multiple',topic:'Funciones',q:'¿Cuál es el dominio de f(x) = √(x − 4)?',opts:['x ≥ 4','x > 4','x ≤ 4','Todos los reales'],ans:0,hint:'La raíz requiere argumento ≥ 0.',exp:'x−4≥0 → x≥4'},
+    {type:'multiple',topic:'Trigonometría',q:'¿Cuánto es sen(30°)?',opts:['√3/2','1/2','1/√2','√3'],ans:1,hint:'Triángulo 30-60-90.',exp:'sen(30°)=1/2'},
+    {type:'input',topic:'Logaritmos',q:'¿Cuánto es log₂(64)?',ans:'6',hint:'2 a qué potencia = 64?',exp:'2⁶=64 → log₂(64)=6'},
+    {type:'multiple',topic:'Probabilidad',q:'Baraja de 52 cartas: ¿cuál es P(sacar un As)?',opts:['1/13','1/4','1/52','4/13'],ans:0,hint:'Hay 4 ases en 52 cartas.',exp:'4/52=1/13'},
+    {type:'multiple',topic:'Álgebra',q:'¿Cuáles son las raíces de x² − 5x + 6 = 0?',opts:['x=2, x=3','x=1, x=6','x=−2, x=−3','x=2, x=−3'],ans:0,hint:'Factoriza buscando factores de 6 que sumen 5.',exp:'(x−2)(x−3)=0'},
+    {type:'multiple',topic:'Trigonometría',q:'Hipotenusa 13, cateto 5. ¿Cuánto mide el otro cateto?',opts:['8','12','10','11'],ans:1,hint:'a²+b²=c²',exp:'5²+b²=13² → b=12'},
+    {type:'input',topic:'Progresión',q:'Suma de los primeros 10 términos de PA con a₁=3 y d=4.',ans:'210',hint:'Sₙ=n/2×(2a₁+(n−1)d)',exp:'5×42=210'},
+    {type:'multiple',topic:'Funciones',q:'f(x)=x²+1 y g(x)=2x. ¿Cuánto es f(g(3))?',opts:['37','19','49','13'],ans:0,hint:'Primero calcula g(3).',exp:'g(3)=6, f(6)=37'},
+    {type:'multiple',topic:'Logaritmos',q:'¿Cuánto es ln(e⁵)?',opts:['5','e⁵','5e','ln5'],ans:0,hint:'ln y e son funciones inversas.',exp:'ln(e⁵)=5'},
+    {type:'multiple',topic:'Acertijo',q:'¿Cuántos ceros tiene 100! (factorial)?',opts:['20','24','25','22'],ans:1,hint:'Cuenta múltiplos de 5.',exp:'⌊100/5⌋+⌊100/25⌋=24'},
+  ]
+};
+
+// ═══════════════════════════════════════════════
+// Q-GAME STATE
+// ═══════════════════════════════════════════════
+let currentLevel='',questions=[],qIndex=0,score=0,lives=3,correct=0,wrong=0;
+let timerInterval=null,timeLeft=0,answered=false;
+const TOTAL_Q=10,TIME_PER_Q=25;
+const TOPIC_COLORS={'Suma':'#00e5ff','Resta':'#00e5ff','Multiplicación':'#00e5ff','División':'#00e5ff',
+  'Fracciones':'#00e5ff','Geometría':'#22c55e','Acertijo':'#f59e0b','Secuencia':'#f59e0b',
+  'Álgebra':'#ff6f00','Potencias':'#ff6f00','Ecuación':'#ff6f00','Porcentaje':'#22c55e',
+  'Factorización':'#ff6f00','Razones':'#22c55e',
+  'Funciones':'#b400ff','Trigonometría':'#b400ff','Logaritmos':'#b400ff',
+  'Probabilidad':'#f59e0b','Progresión':'#b400ff'};
+
+function shuffle(arr){return[...arr].sort(()=>Math.random()-.5);}
+
+function startLevel(lv){
+  currentLevel=lv;setAccent(lv);
+  questions=shuffle(BANKS[lv]).slice(0,TOTAL_Q);
+  qIndex=0;score=0;lives=3;correct=0;wrong=0;
+  showScreen('game');
+  document.getElementById('levelBadge').textContent=lv.charAt(0).toUpperCase()+lv.slice(1);
+  document.getElementById('levelBadge').className='level-badge badge-'+lv;
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered=false;
+  const q=questions[qIndex];updateHUD();
+  document.getElementById('progressBar').style.width=(qIndex/TOTAL_Q*100)+'%';
+  const tc=TOPIC_COLORS[q.topic]||'#888';
+  document.getElementById('questionCard').innerHTML=`
+    <div class="q-number">Pregunta ${qIndex+1} de ${TOTAL_Q}</div>
+    <span class="q-type-badge" style="background:${tc}22;color:${tc};border:1px solid ${tc}44">${q.topic}</span>
+    <div class="q-text">${q.q}</div>
+    <div class="q-hint">💡 ${q.hint}</div>
+    ${q.type==='multiple'?renderOpts(q):renderInp(q)}
+    <div class="feedback" id="feedback"></div>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">SIGUIENTE →</button>`;
+  startTimer();
+}
+function renderOpts(q){return`<div class="options-grid">${q.opts.map((o,i)=>`<button class="option-btn" id="opt${i}" onclick="selectOption(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>`;}
+function renderInp(q){return`<div class="input-wrap"><input class="answer-input" id="answerInput" type="text" placeholder="Tu respuesta..." onkeydown="if(event.key==='Enter')checkInput()"><button class="btn-submit" onclick="checkInput()">OK</button></div>`;}
+
+function startTimer(){
+  clearInterval(timerInterval);timeLeft=TIME_PER_Q;
+  const bar=document.getElementById('timerBar');
+  bar.style.width='100%';bar.style.background='var(--accent)';
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    const pct=timeLeft/TIME_PER_Q*100;
+    bar.style.width=pct+'%';
+    bar.style.background=pct<30?'var(--red)':pct<60?'var(--gold)':'var(--accent)';
+    if(timeLeft<=0){clearInterval(timerInterval);if(!answered)timeOut();}
+  },1000);
+}
+function timeOut(){
+  answered=true;const q=questions[qIndex];wrong++;lives=Math.max(0,lives-1);updateHUD();
+  showFeedback(false,`⏰ ¡Tiempo! ${q.exp}`);
+  if(q.type==='multiple')document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+  else{const i=document.getElementById('answerInput');if(i){i.disabled=true;i.classList.add('wrong');}}
+  document.getElementById('btnNext').style.display='block';
+}
+function selectOption(idx){
+  if(answered)return;answered=true;clearInterval(timerInterval);
+  const q=questions[qIndex],ok=q.ans===idx;
+  document.querySelectorAll('.option-btn').forEach(b=>b.disabled=true);
+  document.getElementById('opt'+idx).classList.add(ok?'correct':'wrong');
+  if(!ok)document.getElementById('opt'+q.ans).classList.add('correct');
+  handleResult(ok,q);
+}
+function checkInput(){
+  if(answered)return;
+  const inp=document.getElementById('answerInput');if(!inp||!inp.value.trim())return;
+  answered=true;clearInterval(timerInterval);
+  const q=questions[qIndex],ok=inp.value.trim().toLowerCase()===String(q.ans).toLowerCase();
+  inp.classList.add(ok?'correct':'wrong');inp.disabled=true;
+  handleResult(ok,q);
+}
+function handleResult(ok,q){
+  if(ok){correct++;const pts=100+Math.ceil(timeLeft*3);score+=pts;spawnParticle('⭐');showFeedback(true,`✅ ¡Correcto! +${pts} pts — ${q.exp}`);}
+  else{wrong++;lives=Math.max(0,lives-1);showFeedback(false,`❌ La respuesta era: ${q.exp}`);}
+  updateHUD();document.getElementById('btnNext').style.display='block';
+}
+function showFeedback(ok,text){
+  const fb=document.getElementById('feedback');
+  fb.className='feedback '+(ok?'correct':'wrong');fb.textContent=text;fb.style.display='block';
+}
+function nextQuestion(){
+  qIndex++;
+  if(qIndex>=TOTAL_Q||lives<=0)showResultsQ();
+  else renderQuestion();
+}
+function updateHUD(){
+  document.getElementById('scoreDisplay').textContent=score;
+  document.getElementById('livesDisplay').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
+  document.getElementById('qIndexDisplay').textContent=`${qIndex+1}/${TOTAL_Q}`;
+}
+function showResultsQ(){
+  clearInterval(timerInterval);
+  const pct=Math.round(correct/TOTAL_Q*100);
+  const isNew=checkAndSaveRecord('q-'+currentLevel,score,{pct,correct});
+  showResultsScreen(correct,wrong,score,pct,isNew,()=>startLevel(currentLevel));
+}
+
+// ═══════════════════════════════════════════════
+// SHARED RESULTS SCREEN
+// ═══════════════════════════════════════════════
+function showResultsScreen(cor,wr,sc,pct,isNew,playAgainFn){
+  showScreen('results');
+  let emoji,title,sub;
+  if(pct===100){emoji='🏆';title='¡PERFECTO!';sub='¡Eres un genio matemático!';}
+  else if(pct>=80){emoji='🌟';title='¡EXCELENTE!';sub='Gran dominio del nivel.';}
+  else if(pct>=60){emoji='👍';title='¡BIEN HECHO!';sub='Vas por buen camino.';}
+  else if(pct>=40){emoji='📚';title='SIGUE PRACTICANDO';sub='Repasa los temas.';}
+  else{emoji='💪';title='¡NO TE RINDAS!';sub='La práctica hace al maestro.';}
+  document.getElementById('resultEmoji').textContent=emoji;
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultSub').textContent=sub;
+  document.getElementById('scorePercent').textContent=pct+'%';
+  document.getElementById('statCorrect').textContent=cor;
+  document.getElementById('statWrong').textContent=wr;
+  document.getElementById('statScore').textContent=sc;
+  const recBanner=document.getElementById('newRecordBanner');
+  recBanner.style.display=isNew?'block':'none';
+  if(isNew){spawnParticle('🏆');spawnParticle('🏆');}
+  setTimeout(()=>document.getElementById('scoreRing').style.setProperty('--pct',pct+'%'),200);
+  document.getElementById('btnPlayAgain').onclick=playAgainFn;
+  updateHomeRecords();
+}
+
+// ═══════════════════════════════════════════════
+// 🔺 TRIANGLE MINI
+// ═══════════════════════════════════════════════
+const TRIANGLES=[
+  {ruleText:'🔺 Regla: El centro = SUMA de las tres esquinas',
+   examples:[{t:3,l:9,r:6,c:18},{t:5,l:10,r:15,c:30}],puzzle:{t:4,l:12,r:8},ans:24,hint:'4+12+8=?'},
+  {ruleText:'🔺 Regla: El centro = esquina IZQUIERDA × esquina DERECHA',
+   examples:[{t:5,l:4,r:3,c:12},{t:2,l:6,r:5,c:30}],puzzle:{t:7,l:8,r:4},ans:32,hint:'8×4=?'},
+  {ruleText:'🔺 Regla: El centro = (esquina superior × izquierda) ÷ derecha',
+   examples:[{t:6,l:4,r:3,c:8},{t:10,l:3,r:5,c:6}],puzzle:{t:9,l:4,r:6},ans:6,hint:'(9×4)÷6=?'},
+  {ruleText:'🔺 Regla: El centro × 2 = suma de las esquinas',
+   examples:[{t:2,l:4,r:6,c:6},{t:3,l:9,r:6,c:9}],puzzle:{t:5,l:10,r:15,c:15},ans:15,hint:'(5+10+15)÷2=?'},
+  {ruleText:'🔺 Regla: El centro = superior × (izquierda − derecha)',
+   examples:[{t:5,l:7,r:2,c:25},{t:4,l:9,r:3,c:24}],puzzle:{t:6,l:11,r:4},ans:42,hint:'6×(11−4)=?'},
+  {ruleText:'🔺 Regla: El centro = suma esquinas − 10',
+   examples:[{t:8,l:9,r:7,c:14},{t:6,l:5,r:4,c:5}],puzzle:{t:12,l:8,r:5},ans:15,hint:'12+8+5−10=?'},
+];
+
+let triIdx=0,triScore=0,triCor=0,triWrong=0;
+function initTriangle(){
+  triIdx=0;triScore=0;triCor=0;triWrong=0;
+  document.getElementById('miniTitle').textContent='🔺 Triángulos Mágicos';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+TRIANGLES.length;
+  showScreen('miniGame');renderTriangle();
+}
+function renderTriangle(){
+  if(triIdx>=TRIANGLES.length){
+    const pct=Math.round(triCor/TRIANGLES.length*100);
+    const isNew=checkAndSaveRecord('m-triangle',triScore,{correct:triCor});
+    showResultsScreen(triCor,triWrong,triScore,pct,isNew,initTriangle);return;
+  }
+  const p=TRIANGLES[triIdx];
+  document.getElementById('miniProgress').textContent=(triIdx+1)+'/'+TRIANGLES.length;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.3);color:#00e5ff">${p.ruleText}</div>
+    <div class="triangle-wrap" id="triWrap"></div>
+    <div class="tri-input-row">
+      <input class="tri-input" id="triAns" type="number" placeholder="X=?" onkeydown="if(event.key==='Enter')checkTriangle()">
+      <button class="btn-check" onclick="checkTriangle()">✓ OK</button>
+    </div>
+    <div id="triFb" style="margin-top:12px;text-align:center;font-weight:800;font-size:.95rem;"></div>
+    <button class="btn-next" id="triNext" onclick="nextTriangle()" style="margin-top:12px">SIGUIENTE →</button>`;
+  const wrap=document.getElementById('triWrap');
+  p.examples.forEach((ex,i)=>wrap.appendChild(makeTriSVG(ex.t,ex.l,ex.r,ex.c,false,`Ej. ${i+1}`)));
+  wrap.appendChild(makeTriSVG(p.puzzle.t,p.puzzle.l,p.puzzle.r,'?',true,'¿X=?'));
+}
+function makeTriSVG(top,left,right,center,isQ,label){
+  const ns='http://www.w3.org/2000/svg';
+  const div=document.createElement('div');div.className='tri-svg-wrap';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 200 180');svg.setAttribute('width','148');svg.setAttribute('height','135');
+  svg.classList.add('tri-svg');
+  const poly=document.createElementNS(ns,'polygon');poly.setAttribute('points','100,10 10,160 190,160');svg.appendChild(poly);
+  const circ=document.createElementNS(ns,'circle');circ.setAttribute('cx','100');circ.setAttribute('cy','112');circ.setAttribute('r','24');svg.appendChild(circ);
+  const addT=(x,y,v,cls)=>{const t=document.createElementNS(ns,'text');t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');t.className.baseVal=cls;t.textContent=v;svg.appendChild(t);};
+  addT('100','22',''+top,'');addT('22','152',''+left,'');addT('178','152',''+right,'');
+  addT('100','112',isQ?'X':''+center,isQ?'tq':'tc');
+  div.appendChild(svg);
+  const lbl=document.createElement('div');lbl.className='tri-lbl';lbl.textContent=label;div.appendChild(lbl);
+  return div;
+}
+function checkTriangle(){
+  const p=TRIANGLES[triIdx],val=parseFloat(document.getElementById('triAns').value);
+  if(isNaN(val)){document.getElementById('triFb').innerHTML='<span style="color:var(--red)">⚠️ Ingresa un número</span>';return;}
+  document.getElementById('triAns').disabled=true;
+  if(val===p.ans){triCor++;triScore+=120;document.getElementById('miniScore').textContent=triScore;
+    document.getElementById('triFb').innerHTML=`<span style="color:var(--green)">✅ ¡Correcto! Pista: ${p.hint}</span>`;spawnParticle('⭐');}
+  else{triWrong++;document.getElementById('triFb').innerHTML=`<span style="color:var(--red)">❌ La respuesta era ${p.ans}. ${p.hint}</span>`;}
+  document.getElementById('triNext').style.display='block';
+}
+function nextTriangle(){triIdx++;renderTriangle();}
+
+// ═══════════════════════════════════════════════
+// ⭐ STAR MINI
+// ═══════════════════════════════════════════════
+const STAR_DATA=[
+  {ruleText:'⭐ Cada par de nodos OPUESTOS debe sumar: 12',target:12,outer:[8,null,3,4,null,9],editable:[1,4],solutions:{1:4,4:8},options:[3,4,7,8]},
+  {ruleText:'⭐ Cada par de nodos OPUESTOS debe sumar: 15',target:15,outer:[9,null,6,null,7,null],editable:[1,3,5],solutions:{1:6,3:9,5:8},options:[6,8,9,4]},
+  {ruleText:'⭐ Cada par de nodos OPUESTOS debe sumar: 20',target:20,outer:[null,12,null,8,null,11],editable:[0,2,4],solutions:{0:8,2:12,4:9},options:[8,9,12,15]},
+  {ruleText:'⭐ Cada par de nodos OPUESTOS debe sumar: 18',target:18,outer:[7,null,5,null,null,10],editable:[1,3,4],solutions:{1:11,3:13,4:8},options:[8,11,13,15]},
+  {ruleText:'⭐ Cada par de nodos OPUESTOS debe sumar: 25',target:25,outer:[null,15,null,10,null,12],editable:[0,2,4],solutions:{0:15,2:10,4:13},options:[10,12,13,15]},
+];
+let starIdx=0,starScore=0,starCor=0,starWrong2=0,starSelected={};
+function initStar(){
+  starIdx=0;starScore=0;starCor=0;starWrong2=0;
+  document.getElementById('miniTitle').textContent='⭐ Estrellas Mágicas';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+STAR_DATA.length;
+  showScreen('miniGame');renderStar();
+}
+function renderStar(){
+  if(starIdx>=STAR_DATA.length){
+    const pct=Math.round(starCor/STAR_DATA.length*100);
+    const isNew=checkAndSaveRecord('m-star',starScore,{correct:starCor});
+    showResultsScreen(starCor,starWrong2,starScore,pct,isNew,initStar);return;
+  }
+  const d=STAR_DATA[starIdx];starSelected={};
+  document.getElementById('miniProgress').textContent=(starIdx+1)+'/'+STAR_DATA.length;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="star-rule">${d.ruleText}</div>
+    <div class="star-hint">Toca los nodos rojos (parpadeantes) para cambiar su valor</div>
+    <div class="star-container" id="starCont">
+      <svg class="star-svg" id="starSvg" style="width:280px;height:280px"></svg>
+    </div>
+    <div id="starFb" style="text-align:center;font-weight:800;font-size:.95rem;margin-top:6px;"></div>
+    <button class="btn-next" id="starNext" onclick="nextStar()" style="margin-top:12px;display:none">SIGUIENTE →</button>`;
+  buildStarNodes(d);
+}
+function buildStarNodes(d){
+  const cont=document.getElementById('starCont');
+  const svg=document.getElementById('starSvg');svg.innerHTML='';
+  cont.querySelectorAll('.star-node').forEach(n=>n.remove());
+  const cx=140,cy=140,r=105;
+  const angles=[-90,-30,30,90,150,210];
+  const pos=angles.map(a=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)]);
+  [[0,3],[1,4],[2,5]].forEach(([a,b])=>{
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',pos[a][0]);ln.setAttribute('y1',pos[a][1]);
+    ln.setAttribute('x2',pos[b][0]);ln.setAttribute('y2',pos[b][1]);svg.appendChild(ln);
+  });
+  pos.forEach(([x,y],i)=>{
+    const nd=document.createElement('div');nd.className='star-node';nd.id='sn'+i;
+    nd.style.left=x+'px';nd.style.top=y+'px';
+    if(d.editable.includes(i)){
+      nd.classList.add('sn-edit');nd.textContent='?';starSelected[i]=null;
+      nd.onclick=()=>cycleStarNode(i,d);
+    }else{nd.classList.add('sn-fixed');nd.textContent=d.outer[i];}
+    cont.appendChild(nd);
+  });
+}
+function cycleStarNode(i,d){
+  const opts=d.options,cur=starSelected[i],ci=opts.indexOf(cur);
+  starSelected[i]=opts[(ci+1)%opts.length];
+  document.getElementById('sn'+i).textContent=starSelected[i];
+  if(d.editable.every(idx=>starSelected[idx]!==null))checkStar(d);
+}
+function checkStar(d){
+  const outer=[...d.outer];d.editable.forEach(i=>outer[i]=starSelected[i]);
+  const ok=[[0,3],[1,4],[2,5]].every(([a,b])=>outer[a]+outer[b]===d.target);
+  if(ok){starCor++;starScore+=150;document.getElementById('miniScore').textContent=starScore;
+    document.getElementById('starFb').innerHTML=`<span style="color:var(--green)">✅ ¡Perfecto! Todos los pares suman ${d.target}</span>`;
+    d.editable.forEach(i=>document.getElementById('sn'+i).className='star-node sn-ok');
+    document.getElementById('starNext').style.display='block';spawnParticle('🌟');}
+  else{document.getElementById('starFb').innerHTML=`<span style="color:var(--dim)">Sigue intentando… revisa los pares opuestos</span>`;}
+}
+function nextStar(){starIdx++;renderStar();}
+
+// ═══════════════════════════════════════════════
+// ✚ CROSS MINI
+// ═══════════════════════════════════════════════
+const CROSS_DATA=[
+  {rule:'El centro = SUMA de los 4 brazos',ex:[{t:3,r:7,b:5,l:15,c:30},{t:4,r:2,b:1,l:4,c:11}],puz:{t:10,r:6,b:3,l:3},ans:22,opts:[18,22,25,30],ci:1},
+  {rule:'El centro = brazo SUPERIOR × brazo INFERIOR',ex:[{t:4,r:9,b:3,l:7,c:12},{t:5,r:2,b:4,l:8,c:20}],puz:{t:6,r:11,b:7,l:4},ans:42,opts:[17,30,42,13],ci:2},
+  {rule:'El centro = (brazo izquierdo − derecho) × superior',ex:[{t:4,r:2,b:8,l:5,c:12},{t:3,r:4,b:2,l:7,c:9}],puz:{t:5,r:3,b:6,l:8},ans:25,opts:[25,15,40,10],ci:0},
+  {rule:'El centro = Suma de brazos ÷ 2',ex:[{t:6,r:4,b:8,l:2,c:10},{t:3,r:5,b:7,l:1,c:8}],puz:{t:4,r:6,b:8,l:2},ans:10,opts:[10,16,8,20],ci:0},
+  {rule:'El centro = izquierdo × derecho + superior',ex:[{t:2,r:3,b:5,l:4,c:14},{t:1,r:5,b:2,l:6,c:31}],puz:{t:3,r:4,b:6,l:5},ans:23,opts:[23,17,20,32],ci:0},
+];
+let crossIdx=0,crossScore=0,crossCor=0,crossWrong=0;
+function initCross(){
+  crossIdx=0;crossScore=0;crossCor=0;crossWrong=0;
+  document.getElementById('miniTitle').textContent='✚ Cruces Matemáticas';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+CROSS_DATA.length;
+  showScreen('miniGame');renderCross();
+}
+function renderCross(){
+  if(crossIdx>=CROSS_DATA.length){
+    const pct=Math.round(crossCor/CROSS_DATA.length*100);
+    const isNew=checkAndSaveRecord('m-cross',crossScore,{correct:crossCor});
+    showResultsScreen(crossCor,crossWrong,crossScore,pct,isNew,initCross);return;
+  }
+  const d=CROSS_DATA[crossIdx];
+  document.getElementById('miniProgress').textContent=(crossIdx+1)+'/'+CROSS_DATA.length;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(0,255,136,.06);border-color:rgba(0,255,136,.3);color:var(--green)">🔍 ${d.rule}</div>
+    <div class="cross-examples" id="crossExamples"></div>
+    <div style="text-align:center;font-size:.82rem;color:var(--dim);margin-bottom:12px">Selecciona la respuesta correcta para X</div>
+    <div class="cross-opts" id="crossOpts"></div>
+    <div id="crossFb" style="text-align:center;font-weight:800;font-size:.95rem;margin-top:10px;"></div>
+    <button class="btn-next" id="crossNext" onclick="nextCross()" style="margin-top:12px;display:none">SIGUIENTE →</button>`;
+  const exWrap=document.getElementById('crossExamples');
+  d.ex.forEach((e,i)=>{
+    const block=document.createElement('div');block.className='cross-example-block';
+    block.innerHTML=`<div class="cross-example-lbl">Ejemplo ${i+1}</div>`;
+    block.appendChild(buildCrossGrid(e,false));exWrap.appendChild(block);
+  });
+  const pBlock=document.createElement('div');pBlock.className='cross-example-block';
+  pBlock.innerHTML='<div class="cross-example-lbl" style="color:var(--red)">¿X=?</div>';
+  pBlock.appendChild(buildCrossGrid(d.puz,true));exWrap.appendChild(pBlock);
+  const optsEl=document.getElementById('crossOpts');
+  d.opts.forEach((v,i)=>{
+    const btn=document.createElement('button');btn.className='cross-opt';btn.textContent=v;
+    btn.onclick=()=>checkCross(i,d,btn);optsEl.appendChild(btn);
+  });
+}
+function buildCrossGrid(data,isPuzz){
+  const grid=document.createElement('div');grid.className='cross-grid';
+  const layout=[{r:0,c:1,v:data.t,t:'filled'},{r:1,c:0,v:data.l,t:'filled'},
+    {r:1,c:1,v:isPuzz?'X':(data.c??''),t:isPuzz?'answer':'center'},
+    {r:1,c:2,v:data.r,t:'filled'},{r:2,c:1,v:data.b,t:'filled'}];
+  for(let i=0;i<9;i++){
+    const row=Math.floor(i/3),col=i%3;
+    const cell=document.createElement('div');
+    const found=layout.find(x=>x.r===row&&x.c===col);
+    if(found){cell.className='cc cc-'+(found.t==='center'?'center':found.t==='answer'?'answer':'filled');cell.textContent=found.v;}
+    else cell.className='cc cc-empty';
+    grid.appendChild(cell);
+  }
+  return grid;
+}
+function checkCross(idx,d,btn){
+  document.querySelectorAll('.cross-opt').forEach(b=>b.disabled=true);
+  if(idx===d.ci){crossCor++;crossScore+=130;document.getElementById('miniScore').textContent=crossScore;
+    btn.classList.add('co-correct');
+    document.getElementById('crossFb').innerHTML=`<span style="color:var(--green)">✅ ¡Correcto! X = ${d.ans}</span>`;
+    spawnParticle('⭐');}
+  else{crossWrong++;btn.classList.add('co-wrong');
+    document.getElementById('crossFb').innerHTML=`<span style="color:var(--red)">❌ La respuesta era ${d.ans}</span>`;}
+  document.getElementById('crossNext').style.display='block';
+}
+function nextCross(){crossIdx++;renderCross();}
+
+// ═══════════════════════════════════════════════
+// 🐍 SNAKE MINI — CON NIVELES DE DIFICULTAD
+// ═══════════════════════════════════════════════
+const SNAKE_QS=[
+  {q:'¿Cuánto es 7 × 8?',correct:56,wrong:[48,54,63]},
+  {q:'¿Cuánto es 144 ÷ 12?',correct:12,wrong:[11,13,14]},
+  {q:'¿Cuánto es 15²?',correct:225,wrong:[125,175,250]},
+  {q:'¿Cuánto es 2⁸?',correct:256,wrong:[128,512,64]},
+  {q:'√169 = ?',correct:13,wrong:[12,14,11]},
+  {q:'25% de 200 = ?',correct:50,wrong:[25,40,75]},
+  {q:'3x = 27 → x = ?',correct:9,wrong:[6,8,7]},
+  {q:'1000 ÷ 25 = ?',correct:40,wrong:[25,50,35]},
+  {q:'−5 + (−8) = ?',correct:-13,wrong:[-3,3,13]},
+  {q:'5! = ?',correct:120,wrong:[60,100,240]},
+];
+
+// Velocidades en ms por tick: menor = más rápido
+const SNAKE_SPEEDS={facil:220,medio:150,dificil:90};
+const SGRID=16,SCELL=20;
+let sSnake,sDirObj,sFoods,sInterval,sRunning,sLives,sScore,sQi,sEaten,sPendDir;
+let snakeDifficulty='medio';
+
+function initSnake(){
+  sLives=3;sScore=0;sQi=0;sEaten=0;
+  document.getElementById('miniTitle').textContent='🐍 Serpiente Numérica';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='0/'+SNAKE_QS.length;
+  showScreen('miniGame');
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="snake-q" id="snakeQ">Elige la dificultad y toca para iniciar</div>
+    <div class="difficulty-selector">
+      <button class="diff-btn ${snakeDifficulty==='facil'?'selected':''}" data-diff="facil" onclick="setSnakeDiff('facil',this)">🟢 Fácil</button>
+      <button class="diff-btn ${snakeDifficulty==='medio'?'selected':''}" data-diff="medio" onclick="setSnakeDiff('medio',this)">🟡 Medio</button>
+      <button class="diff-btn ${snakeDifficulty==='dificil'?'selected':''}" data-diff="dificil" onclick="setSnakeDiff('dificil',this)">🔴 Difícil</button>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:10px;justify-content:center;flex-wrap:wrap">
+      <div class="meta-item">❤️ <span id="sLivesD">3</span></div>
+      <div class="meta-item">🍎 <span id="sEatenD">0</span> comidos</div>
+    </div>
+    <div style="position:relative;display:flex;justify-content:center">
+      <canvas id="snakeCanvas" width="320" height="320"></canvas>
+      <div class="snake-overlay" id="snakeOv"><div class="ov-title">🐍</div><div class="ov-sub">Toca para iniciar</div></div>
+    </div>
+    <div class="snake-controls">
+      <div class="snake-row"><button class="dpad" onclick="sSetDir(0,-1)">▲</button></div>
+      <div class="snake-row"><button class="dpad" onclick="sSetDir(-1,0)">◀</button><div style="width:48px"></div><button class="dpad" onclick="sSetDir(1,0)">▶</button></div>
+      <div class="snake-row"><button class="dpad" onclick="sSetDir(0,1)">▼</button></div>
+    </div>`;
+  document.getElementById('snakeOv').onclick=startSnakeRound;
+  document.addEventListener('keydown',snakeKeyDown);
+}
+
+function setSnakeDiff(diff,btn){
+  snakeDifficulty=diff;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function startSnakeRound(){
+  const ov=document.getElementById('snakeOv');if(!ov)return;
+  ov.style.display='none';ov.onclick=null;
+  sSnake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
+  sDirObj={x:1,y:0};sPendDir=null;sRunning=true;
+  loadSnakeQ();clearInterval(sInterval);
+  sInterval=setInterval(snakeTick,SNAKE_SPEEDS[snakeDifficulty]);
+}
+function loadSnakeQ(){
+  const q=SNAKE_QS[sQi];
+  const el=document.getElementById('snakeQ');if(el)el.textContent=q.q;
+  document.getElementById('miniProgress').textContent=sEaten+'/'+SNAKE_QS.length;
+  const all=[q.correct,...q.wrong];all.sort(()=>Math.random()-.5);
+  sFoods=[];const used=new Set();
+  all.forEach(n=>{let x,y,k;do{x=Math.floor(Math.random()*SGRID);y=Math.floor(Math.random()*SGRID);k=x+','+y;}
+    while(used.has(k)||sSnake.some(s=>s.x===x&&s.y===y));used.add(k);
+    sFoods.push({x,y,val:n,correct:n===q.correct});});
+}
+function snakeTick(){
+  if(!sRunning)return;
+  if(sPendDir){if(!(sPendDir.x===-sDirObj.x&&sPendDir.y===-sDirObj.y))sDirObj=sPendDir;sPendDir=null;}
+  const head={x:sSnake[0].x+sDirObj.x,y:sSnake[0].y+sDirObj.y};
+  if(head.x<0||head.x>=SGRID||head.y<0||head.y>=SGRID){sLoseLive();return;}
+  if(sSnake.some(s=>s.x===head.x&&s.y===head.y)){sLoseLive();return;}
+  sSnake.unshift(head);
+  const fi=sFoods.findIndex(f=>f.x===head.x&&f.y===head.y);
+  if(fi>=0){
+    const f=sFoods.splice(fi,1)[0];
+    if(f.correct){sScore+=100+(snakeDifficulty==='dificil'?50:snakeDifficulty==='medio'?25:0);
+      sEaten++;document.getElementById('miniScore').textContent=sScore;
+      document.getElementById('sEatenD').textContent=sEaten;
+      document.getElementById('miniProgress').textContent=sEaten+'/'+SNAKE_QS.length;
+      spawnParticle('⭐');sQi++;
+      if(sQi>=SNAKE_QS.length){clearInterval(sInterval);sRunning=false;
+        setTimeout(()=>{const pct=Math.round(sEaten/SNAKE_QS.length*100);
+          const isNew=checkAndSaveRecord('m-snake',sScore,{correct:sEaten});
+          showResultsScreen(sEaten,SNAKE_QS.length-sEaten,sScore,pct,isNew,initSnake);},600);return;}
+      loadSnakeQ();
+    }else{sSnake.pop();sLoseLive();return;}
+  }else sSnake.pop();
+  drawSnakeCanvas();
+}
+function sLoseLive(){
+  sRunning=false;clearInterval(sInterval);sLives--;
+  const ld=document.getElementById('sLivesD');if(ld)ld.textContent=sLives;
+  if(sLives<=0){
+    const ov=document.getElementById('snakeOv');
+    if(ov){ov.style.display='flex';ov.innerHTML='<div class="ov-title">💀 Game Over</div><div class="ov-sub">Puntos: '+sScore+'</div>';}
+    setTimeout(()=>{const pct=Math.round(sEaten/SNAKE_QS.length*100);
+      const isNew=checkAndSaveRecord('m-snake',sScore,{correct:sEaten});
+      showResultsScreen(sEaten,SNAKE_QS.length-sEaten,sScore,pct,isNew,initSnake);},2200);
+  }else{
+    const ov=document.getElementById('snakeOv');
+    if(ov){ov.style.display='flex';
+      ov.innerHTML=`<div class="ov-title">💥 ¡Número incorrecto!</div><div class="ov-sub">${'❤️'.repeat(sLives)} Toca para continuar</div>`;
+      ov.onclick=startSnakeRound;}
+  }
+}
+function drawSnakeCanvas(){
+  const canvas=document.getElementById('snakeCanvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,320,320);
+  ctx.fillStyle='rgba(255,255,255,.025)';
+  for(let x=0;x<SGRID;x++)for(let y=0;y<SGRID;y++)ctx.fillRect(x*SCELL+SCELL/2-1,y*SCELL+SCELL/2-1,2,2);
+  sSnake.forEach((s,i)=>{
+    const g=ctx.createRadialGradient(s.x*SCELL+SCELL/2,s.y*SCELL+SCELL/2,1,s.x*SCELL+SCELL/2,s.y*SCELL+SCELL/2,SCELL/2);
+    if(i===0){g.addColorStop(0,'#00ff88');g.addColorStop(1,'#00aa55');}
+    else{g.addColorStop(0,'#00e5ff');g.addColorStop(1,'#0077bb');}
+    ctx.fillStyle=g;ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(s.x*SCELL+1,s.y*SCELL+1,SCELL-2,SCELL-2,4);
+    else ctx.rect(s.x*SCELL+1,s.y*SCELL+1,SCELL-2,SCELL-2);
+    ctx.fill();
+    if(i===0){ctx.fillStyle='#fff';ctx.fillRect(s.x*SCELL+4,s.y*SCELL+4,3,3);ctx.fillRect(s.x*SCELL+13,s.y*SCELL+4,3,3);}
+  });
+  sFoods.forEach(f=>{
+    const cx2=f.x*SCELL+SCELL/2,cy2=f.y*SCELL+SCELL/2;
+    ctx.beginPath();ctx.arc(cx2,cy2,SCELL/2-1,0,Math.PI*2);
+    ctx.fillStyle=f.correct?'rgba(255,215,0,.92)':'rgba(255,51,102,.85)';ctx.fill();
+    ctx.fillStyle='#111';ctx.font=`bold ${f.val.toString().length>2?7:9}px monospace`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(f.val,cx2,cy2);
+  });
+}
+function sSetDir(x,y){sPendDir={x,y};}
+function snakeKeyDown(e){const m={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};if(m[e.key]){e.preventDefault();sPendDir=m[e.key];}}
+function stopSnake(){clearInterval(sInterval);sRunning=false;document.removeEventListener('keydown',snakeKeyDown);}
+
+// ═══════════════════════════════════════════════
+// 🔗 ANALOGY MINI
+// ═══════════════════════════════════════════════
+const ANALOGIES=[
+  {pairs:[[2,4],[3,9],[5,25],[7,49]],q:6,ans:36,opts:[12,36,30,18],ci:1,rule:'x → x²'},
+  {pairs:[[1,3],[2,6],[4,12],[5,15]],q:8,ans:24,opts:[24,16,11,21],ci:0,rule:'x → x×3'},
+  {pairs:[[10,5],[20,10],[8,4],[14,7]],q:18,ans:9,opts:[36,9,12,6],ci:1,rule:'x → x÷2'},
+  {pairs:[[1,2],[2,5],[3,10],[4,17]],q:5,ans:26,opts:[26,10,21,30],ci:0,rule:'x → x²+1'},
+  {pairs:[[3,7],[5,11],[8,17],[2,5]],q:6,ans:13,opts:[13,12,7,15],ci:0,rule:'x → x×2+1'},
+  {pairs:[[100,10],[64,8],[81,9],[4,2]],q:49,ans:7,opts:[7,9,6,8],ci:0,rule:'x → √x'},
+  {pairs:[[2,8],[3,27],[1,1],[4,64]],q:5,ans:125,opts:[125,25,15,75],ci:0,rule:'x → x³'},
+  {pairs:[[10,6],[15,11],[20,16],[8,4]],q:25,ans:21,opts:[21,20,29,5],ci:0,rule:'x → x−4'},
+];
+let anIdx=0,anScore=0,anCor=0,anWrong=0;
+function initAnalogy(){
+  anIdx=0;anScore=0;anCor=0;anWrong=0;
+  document.getElementById('miniTitle').textContent='🔗 Analogías';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+ANALOGIES.length;
+  showScreen('miniGame');renderAnalogy();
+}
+function renderAnalogy(){
+  if(anIdx>=ANALOGIES.length){
+    const pct=Math.round(anCor/ANALOGIES.length*100);
+    const isNew=checkAndSaveRecord('m-analogy',anScore,{correct:anCor});
+    showResultsScreen(anCor,anWrong,anScore,pct,isNew,initAnalogy);return;
+  }
+  const d=ANALOGIES[anIdx];
+  document.getElementById('miniProgress').textContent=(anIdx+1)+'/'+ANALOGIES.length;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(180,0,255,.08);border-color:rgba(180,0,255,.3);color:var(--prepa)">🔍 Descubre el patrón oculto</div>
+    <div class="analogy-pairs" id="anPairs"></div>
+    <div style="text-align:center;font-size:1rem;font-weight:800;margin-bottom:12px;color:var(--gold)">
+      Si ${d.pairs[0][0]}→${d.pairs[0][1]}, entonces <span style="color:var(--accent)">${d.q}</span>→<span style="color:var(--red)">?</span>
+    </div>
+    <div class="ap-opts" id="anOpts"></div>
+    <div id="anFb" style="text-align:center;font-weight:800;font-size:.95rem;margin-top:10px;"></div>
+    <button class="btn-next" id="anNext" onclick="nextAnalogy()" style="margin-top:12px;display:none">SIGUIENTE →</button>`;
+  const pairsEl=document.getElementById('anPairs');
+  d.pairs.forEach(([a,b])=>{
+    const p=document.createElement('div');p.className='ap-pair';
+    p.innerHTML=`<div class="ap-box ap-given">${a}</div><div class="ap-arrow">→</div><div class="ap-box ap-result">${b}</div>`;
+    pairsEl.appendChild(p);
+  });
+  const optsEl=document.getElementById('anOpts');
+  d.opts.forEach((v,i)=>{
+    const btn=document.createElement('button');btn.className='ap-opt';btn.textContent=v;
+    btn.onclick=()=>checkAnalogy(i,d,btn);optsEl.appendChild(btn);
+  });
+}
+function checkAnalogy(idx,d,btn){
+  document.querySelectorAll('.ap-opt').forEach(b=>b.disabled=true);
+  if(idx===d.ci){anCor++;anScore+=140;document.getElementById('miniScore').textContent=anScore;
+    btn.classList.add('correct');
+    document.getElementById('anFb').innerHTML=`<span style="color:var(--green)">✅ ¡Correcto! Regla: ${d.rule}</span>`;
+    spawnParticle('⭐');}
+  else{anWrong++;btn.classList.add('wrong');document.querySelectorAll('.ap-opt')[d.ci].classList.add('correct');
+    document.getElementById('anFb').innerHTML=`<span style="color:var(--red)">❌ Era ${d.ans}. Regla: ${d.rule}</span>`;}
+  document.getElementById('anNext').style.display='block';
+}
+function nextAnalogy(){anIdx++;renderAnalogy();}
+
+// ═══════════════════════════════════════════════
+// 🃏 MEMORY MINI — NUEVO
+// ═══════════════════════════════════════════════
+const MEMORY_PAIRS=[
+  ['7×8','56'],['12²','144'],['√81','9'],['5!','120'],
+  ['2⁷','128'],['√196','14'],['9×9','81'],['15%×100','15'],
+];
+let memFlipped=[],memMatched=0,memMoves=0,memScore=0,memCards=[];
+function initMemory(){
+  memFlipped=[];memMatched=0;memMoves=0;memScore=0;memCards=[];
+  document.getElementById('miniTitle').textContent='🃏 Memoria Matemática';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='0/'+MEMORY_PAIRS.length;
+  showScreen('miniGame');
+  const allCards=[...MEMORY_PAIRS.map(([a,b],i)=>({id:i,side:'a',val:a})),
+    ...MEMORY_PAIRS.map(([a,b],i)=>({id:i,side:'b',val:b}))];
+  allCards.sort(()=>Math.random()-.5);
+  memCards=allCards;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(255,111,0,.06);border-color:rgba(255,111,0,.3);color:#ff6f00">🃏 Empareja la operación con su resultado</div>
+    <div class="mem-info">Movimientos: <span id="memMoves">0</span> | Pares: <span id="memMatched">0</span>/${MEMORY_PAIRS.length}</div>
+    <div class="memory-grid" id="memGrid" style="grid-template-columns:repeat(4,72px)"></div>
+    <div id="memFb" style="text-align:center;font-weight:800;margin-top:10px;min-height:24px;"></div>`;
+  const grid=document.getElementById('memGrid');
+  allCards.forEach((c,idx)=>{
+    const card=document.createElement('div');card.className='mem-card';card.dataset.idx=idx;
+    card.innerHTML=`<div class="mem-card-back">🔢</div><div class="mem-card-face mem-card-front">${c.val}</div>`;
+    card.onclick=()=>flipMemCard(idx,c);
+    grid.appendChild(card);
+  });
+}
+function flipMemCard(idx,card){
+  const el=document.querySelector(`.mem-card[data-idx="${idx}"]`);
+  if(!el||el.classList.contains('flipped')||el.classList.contains('matched')||memFlipped.length>=2)return;
+  el.classList.add('flipped');
+  memFlipped.push({idx,card,el});
+  if(memFlipped.length===2){
+    memMoves++;
+    document.getElementById('memMoves').textContent=memMoves;
+    const [a,b]=memFlipped;
+    if(a.card.id===b.card.id&&a.card.side!==b.card.side){
+      a.el.classList.add('matched');b.el.classList.add('matched');
+      memMatched++;memScore+=100;
+      document.getElementById('miniScore').textContent=memScore;
+      document.getElementById('memMatched').textContent=memMatched;
+      document.getElementById('memFb').innerHTML=`<span style="color:var(--green)">✅ ¡Par encontrado!</span>`;
+      spawnParticle('🌟');memFlipped=[];
+      if(memMatched>=MEMORY_PAIRS.length){
+        const bonus=Math.max(0,500-memMoves*10);memScore+=bonus;
+        setTimeout(()=>{
+          const isNew=checkAndSaveRecord('m-memory',memScore,{correct:memMatched});
+          showResultsScreen(memMatched,0,memScore,100,isNew,initMemory);},600);}
+    }else{
+      document.getElementById('memFb').innerHTML=`<span style="color:var(--red)">❌ No coinciden…</span>`;
+      setTimeout(()=>{a.el.classList.remove('flipped');b.el.classList.remove('flipped');
+        memFlipped=[];document.getElementById('memFb').innerHTML='';},900);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 🔢 SEQUENCE MINI — NUEVO
+// ═══════════════════════════════════════════════
+const SEQUENCES=[
+  {seq:[2,4,8,16,32],q:'?',ans:64,opts:[48,56,64,72],ci:2,rule:'×2 cada término'},
+  {seq:[1,4,9,16,25],q:'?',ans:36,opts:[30,36,42,49],ci:1,rule:'n² (cuadrados perfectos)'},
+  {seq:[3,6,10,15,21],q:'?',ans:28,opts:[24,26,28,31],ci:2,rule:'+3,+4,+5,+6,...'},
+  {seq:[100,50,25,12.5],q:'?',ans:6.25,opts:[5,6.25,7.5,8],ci:1,rule:'÷2 cada término'},
+  {seq:[1,1,2,3,5,8],q:'?',ans:13,opts:[11,12,13,14],ci:2,rule:'Fibonacci: a+b=siguiente'},
+  {seq:[2,6,18,54],q:'?',ans:162,opts:[108,162,216,243],ci:1,rule:'×3 cada término'},
+  {seq:[10,9,7,4],q:'?',ans:0,opts:[-1,0,1,3],ci:1,rule:'−1,−2,−3,−4,...'},
+  {seq:[1,8,27,64],q:'?',ans:125,opts:[100,125,150,216],ci:1,rule:'n³ (cubos perfectos)'},
+];
+let seqIdx=0,seqScore=0,seqCor=0,seqWrong=0;
+function initSequence(){
+  seqIdx=0;seqScore=0;seqCor=0;seqWrong=0;
+  document.getElementById('miniTitle').textContent='🔢 Secuencias';
+  document.getElementById('miniScore').textContent='0';
+  document.getElementById('miniProgress').textContent='1/'+SEQUENCES.length;
+  showScreen('miniGame');renderSequence();
+}
+function renderSequence(){
+  if(seqIdx>=SEQUENCES.length){
+    const pct=Math.round(seqCor/SEQUENCES.length*100);
+    const isNew=checkAndSaveRecord('m-sequence',seqScore,{correct:seqCor});
+    showResultsScreen(seqCor,seqWrong,seqScore,pct,isNew,initSequence);return;
+  }
+  const d=SEQUENCES[seqIdx];
+  document.getElementById('miniProgress').textContent=(seqIdx+1)+'/'+SEQUENCES.length;
+  document.getElementById('miniCardWrap').innerHTML=`
+    <div class="rule-box" style="background:rgba(0,255,136,.06);border-color:rgba(0,255,136,.3);color:var(--green)">🔢 Completa la secuencia</div>
+    <div class="seq-display">${d.seq.join(' , ')} , <span style="color:var(--red)">?</span></div>
+    <div style="text-align:center;font-size:.82rem;color:var(--dim);margin-bottom:8px">¿Cuál es el siguiente número?</div>
+    <div class="seq-opts" id="seqOpts"></div>
+    <div id="seqFb" style="text-align:center;font-weight:800;font-size:.95rem;margin-top:12px;"></div>
+    <button class="btn-next" id="seqNext" onclick="nextSeq()" style="margin-top:12px;display:none">SIGUIENTE →</button>`;
+  const optsEl=document.getElementById('seqOpts');
+  d.opts.forEach((v,i)=>{
+    const btn=document.createElement('button');btn.className='seq-opt';btn.textContent=v;
+    btn.onclick=()=>checkSeq(i,d,btn);optsEl.appendChild(btn);
+  });
+}
+function checkSeq(idx,d,btn){
+  document.querySelectorAll('.seq-opt').forEach(b=>b.disabled=true);
+  if(idx===d.ci){seqCor++;seqScore+=120;document.getElementById('miniScore').textContent=seqScore;
+    btn.classList.add('correct');
+    document.getElementById('seqFb').innerHTML=`<span style="color:var(--green)">✅ ¡Correcto! Patrón: ${d.rule}</span>`;
+    spawnParticle('⭐');}
+  else{seqWrong++;btn.classList.add('wrong');
+    document.querySelectorAll('.seq-opt')[d.ci].classList.add('correct');
+    document.getElementById('seqFb').innerHTML=`<span style="color:var(--red)">❌ Era ${d.ans}. Patrón: ${d.rule}</span>`;}
+  document.getElementById('seqNext').style.display='block';
+}
+function nextSeq(){seqIdx++;renderSequence();}
+
+// ═══════════════════════════════════════════════
+// MINI GAME ROUTER
+// ═══════════════════════════════════════════════
+function startMini(game){
+  stopSnake();
+  const accentMap={
+    triangle:{a:'#00e5ff',a2:'#0077ff'},star:{a:'#ffd700',a2:'#ff8c00'},
+    cross:{a:'#00ff88',a2:'#00bb66'},snake:{a:'#4d96ff',a2:'#c77dff'},
+    analogy:{a:'#b400ff',a2:'#6600ff'},memory:{a:'#ff6f00',a2:'#ff0055'},
+    sequence:{a:'#00ff88',a2:'#00aaff'}
+  };
+  const ac=accentMap[game];
+  document.documentElement.style.setProperty('--accent',ac.a);
+  document.documentElement.style.setProperty('--accent2',ac.a2);
+  if(game==='triangle')initTriangle();
+  else if(game==='star')initStar();
+  else if(game==='cross')initCross();
+  else if(game==='snake')initSnake();
+  else if(game==='analogy')initAnalogy();
+  else if(game==='memory')initMemory();
+  else if(game==='sequence')initSequence();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+updateHomeRecords();
+</script>
+</body>
+</html>
